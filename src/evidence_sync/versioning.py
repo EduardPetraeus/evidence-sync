@@ -251,6 +251,9 @@ def commit_dataset_changes(base_dir: Path, topic_id: str) -> bool:
     Returns:
         True if a commit was created, False if no changes to commit.
     """
+    from evidence_sync.config import validate_topic_id
+
+    validate_topic_id(topic_id)
     dataset_path = f"datasets/{topic_id}/"
 
     try:

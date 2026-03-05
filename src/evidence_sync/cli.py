@@ -13,6 +13,7 @@ from evidence_sync.config import (
     get_studies_dir,
     load_review_config,
     save_review_config,
+    validate_topic_id,
 )
 from evidence_sync.drift import detect_drift
 from evidence_sync.models import EffectMeasure, ReviewConfig
@@ -26,6 +27,14 @@ from evidence_sync.versioning import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _validated_topic_id(ctx: click.Context, param: click.Parameter, value: str) -> str:
+    """Click callback to validate topic_id argument."""
+    try:
+        return validate_topic_id(value)
+    except ValueError as e:
+        raise click.BadParameter(str(e)) from e
 
 
 def _setup_logging(verbose: bool) -> None:
@@ -55,7 +64,7 @@ def cli(ctx: click.Context, verbose: bool, base_dir: Path) -> None:
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option("--name", prompt="Review topic name", help="Human-readable topic name")
 @click.option("--query", prompt="PubMed search query", help="PubMed search query string")
 @click.option(
@@ -100,7 +109,7 @@ def init(
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option("--max-results", default=100, help="Maximum search results")
 @click.pass_context
 def search(ctx: click.Context, topic_id: str, max_results: int) -> None:
@@ -138,7 +147,7 @@ def search(ctx: click.Context, topic_id: str, max_results: int) -> None:
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option("--model", default="claude-sonnet-4-20250514", help="Claude model for extraction")
 @click.option(
     "--auto-commit", is_flag=True, default=False, help="Auto-commit changes to git"
@@ -177,7 +186,7 @@ def extract(ctx: click.Context, topic_id: str, model: str, auto_commit: bool) ->
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option(
     "--auto-commit", is_flag=True, default=False, help="Auto-commit changes to git"
 )
@@ -231,7 +240,7 @@ def analyze(ctx: click.Context, topic_id: str, auto_commit: bool) -> None:
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option("--output-dir", type=click.Path(path_type=Path), default=None)
 @click.pass_context
 def report(ctx: click.Context, topic_id: str, output_dir: Path | None) -> None:
@@ -265,7 +274,7 @@ def report(ctx: click.Context, topic_id: str, output_dir: Path | None) -> None:
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option("--max-results", default=100)
 @click.option("--model", default="claude-sonnet-4-20250514")
 @click.pass_context
@@ -278,7 +287,7 @@ def run(ctx: click.Context, topic_id: str, max_results: int, model: str) -> None
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.pass_context
 def status(ctx: click.Context, topic_id: str) -> None:
     """Show status for a review topic."""

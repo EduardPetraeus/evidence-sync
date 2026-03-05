@@ -506,6 +506,10 @@ def main() -> None:
     else:
         base_dir = Path.cwd()
 
+    if not base_dir.is_dir():
+        st.error(f"Base directory does not exist: {base_dir}")
+        st.stop()
+
     # Sidebar: topic selector
     topics = discover_topics(base_dir)
     if not topics:

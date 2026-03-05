@@ -112,6 +112,20 @@ def _validate_webhook_url(url: str) -> str:
             f"Webhook URL must use https:// scheme, got '{parsed.scheme}://'. "
             "Plain http is rejected to prevent SSRF to internal services."
         )
+
+    hostname = parsed.hostname or ""
+    blocked = (
+        hostname in ("localhost", "127.0.0.1", "0.0.0.0", "::1", "")
+        or hostname.startswith("10.")
+        or hostname.startswith("172.16.")
+        or hostname.startswith("192.168.")
+        or hostname.startswith("169.254.")
+    )
+    if blocked:
+        raise ValueError(
+            f"Webhook URL must not point to private/internal networks: {hostname}"
+        )
+
     return url
 
 
