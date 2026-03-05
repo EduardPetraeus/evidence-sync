@@ -7,18 +7,34 @@ from pathlib import Path
 
 import click
 
+from evidence_sync import __version__
 from evidence_sync.config import (
     get_analysis_dir,
     get_studies_dir,
     load_review_config,
     save_review_config,
+    validate_topic_id,
 )
 from evidence_sync.drift import detect_drift
 from evidence_sync.models import EffectMeasure, ReviewConfig
 from evidence_sync.statistics import run_meta_analysis
-from evidence_sync.versioning import load_all_studies, load_analysis, save_analysis, save_study
+from evidence_sync.versioning import (
+    commit_dataset_changes,
+    load_all_studies,
+    load_analysis,
+    save_analysis,
+    save_study,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def _validated_topic_id(ctx: click.Context, param: click.Parameter, value: str) -> str:
+    """Click callback to validate topic_id argument."""
+    try:
+        return validate_topic_id(value)
+    except ValueError as e:
+        raise click.BadParameter(str(e)) from e
 
 
 def _setup_logging(verbose: bool) -> None:
@@ -31,6 +47,7 @@ def _setup_logging(verbose: bool) -> None:
 
 
 @click.group()
+@click.version_option(version=__version__, prog_name="evidence-sync")
 @click.option("-v", "--verbose", is_flag=True, help="Enable debug logging")
 @click.option(
     "--base-dir",
@@ -47,7 +64,7 @@ def cli(ctx: click.Context, verbose: bool, base_dir: Path) -> None:
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option("--name", prompt="Review topic name", help="Human-readable topic name")
 @click.option("--query", prompt="PubMed search query", help="PubMed search query string")
 @click.option(
@@ -92,7 +109,7 @@ def init(
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option("--max-results", default=100, help="Maximum search results")
 @click.pass_context
 def search(ctx: click.Context, topic_id: str, max_results: int) -> None:
@@ -130,10 +147,13 @@ def search(ctx: click.Context, topic_id: str, max_results: int) -> None:
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option("--model", default="claude-sonnet-4-20250514", help="Claude model for extraction")
+@click.option(
+    "--auto-commit", is_flag=True, default=False, help="Auto-commit changes to git"
+)
 @click.pass_context
-def extract(ctx: click.Context, topic_id: str, model: str) -> None:
+def extract(ctx: click.Context, topic_id: str, model: str, auto_commit: bool) -> None:
     """Extract data from studies using Claude."""
     import anthropic
 
@@ -158,11 +178,20 @@ def extract(ctx: click.Context, topic_id: str, model: str) -> None:
 
     click.echo(f"Extraction complete. {len(unextracted)} studies processed.")
 
+    if auto_commit:
+        if commit_dataset_changes(base_dir, topic_id):
+            click.echo("Changes committed to git.")
+        else:
+            click.echo("No changes to commit.")
+
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.option(
+    "--auto-commit", is_flag=True, default=False, help="Auto-commit changes to git"
+)
 @click.pass_context
-def analyze(ctx: click.Context, topic_id: str) -> None:
+def analyze(ctx: click.Context, topic_id: str, auto_commit: bool) -> None:
     """Run meta-analysis on extracted studies."""
     base_dir = ctx.obj["base_dir"]
     config_path = base_dir / "datasets" / topic_id / "config.yaml"
@@ -203,9 +232,15 @@ def analyze(ctx: click.Context, topic_id: str) -> None:
         for reason in drift.alert_reasons:
             click.echo(f"  - {reason}")
 
+    if auto_commit:
+        if commit_dataset_changes(base_dir, topic_id):
+            click.echo("Changes committed to git.")
+        else:
+            click.echo("No changes to commit.")
+
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option("--output-dir", type=click.Path(path_type=Path), default=None)
 @click.pass_context
 def report(ctx: click.Context, topic_id: str, output_dir: Path | None) -> None:
@@ -239,7 +274,7 @@ def report(ctx: click.Context, topic_id: str, output_dir: Path | None) -> None:
 
 
 @cli.command()
-@click.argument("topic_id")
+@click.argument("topic_id", callback=_validated_topic_id)
 @click.option("--max-results", default=100)
 @click.option("--model", default="claude-sonnet-4-20250514")
 @click.pass_context
@@ -249,6 +284,103 @@ def run(ctx: click.Context, topic_id: str, max_results: int, model: str) -> None
     ctx.invoke(extract, topic_id=topic_id, model=model)
     ctx.invoke(analyze, topic_id=topic_id)
     ctx.invoke(report, topic_id=topic_id)
+
+
+@cli.command()
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.pass_context
+def status(ctx: click.Context, topic_id: str) -> None:
+    """Show status for a review topic."""
+    base_dir = ctx.obj["base_dir"]
+    config_path = base_dir / "datasets" / topic_id / "config.yaml"
+
+    if not config_path.exists():
+        click.echo(f"Topic '{topic_id}' not found.")
+        return
+
+    config = load_review_config(config_path)
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    analysis_dir = get_analysis_dir(base_dir, topic_id)
+
+    studies = load_all_studies(studies_dir)
+    with_data = [s for s in studies if s.has_extractable_data]
+    without_data = [s for s in studies if not s.has_extractable_data]
+
+    click.echo(f"Topic: {config.topic_name} ({topic_id})")
+    click.echo(
+        f"Studies: {len(studies)} total, {len(with_data)} with data, "
+        f"{len(without_data)} without data"
+    )
+
+    result = load_analysis(analysis_dir)
+    if result:
+        click.echo(f"\nLatest analysis ({result.analysis_date}):")
+        click.echo(
+            f"  Pooled effect: {result.pooled_effect:.4f} "
+            f"[{result.pooled_ci_lower:.4f}, {result.pooled_ci_upper:.4f}]"
+        )
+        click.echo(f"  P-value: {result.pooled_p_value:.6f}")
+        click.echo(f"  I-squared: {result.i_squared:.1f}%")
+
+        drift = detect_drift(result, None, config)
+        if drift.alert_triggered:
+            click.echo("  Drift: ALERT")
+            for reason in drift.alert_reasons:
+                click.echo(f"    - {reason}")
+        else:
+            click.echo("  Drift: None detected")
+    else:
+        click.echo("\nNo analysis available yet.")
+
+
+@cli.command(name="list")
+@click.pass_context
+def list_topics(ctx: click.Context) -> None:
+    """List all configured review topics."""
+    base_dir = ctx.obj["base_dir"]
+    datasets_dir = base_dir / "datasets"
+
+    if not datasets_dir.exists():
+        click.echo("No datasets directory found.")
+        return
+
+    topics_found = False
+    for child in sorted(datasets_dir.iterdir()):
+        if child.is_dir() and (child / "config.yaml").exists():
+            config = load_review_config(child / "config.yaml")
+            studies_dir = child / "studies"
+            n_studies = len(list(studies_dir.glob("*.yaml"))) if studies_dir.exists() else 0
+            has_analysis = (child / "analysis" / "summary.yaml").exists()
+            analysis_indicator = "analyzed" if has_analysis else "no analysis"
+            click.echo(
+                f"  {config.topic_id}: {config.topic_name} "
+                f"({n_studies} studies, {analysis_indicator})"
+            )
+            topics_found = True
+
+    if not topics_found:
+        click.echo("No topics configured. Run 'evidence-sync init <topic_id>' to create one.")
+
+
+@cli.command()
+@click.option("--port", default=8501, help="Port for dashboard")
+@click.pass_context
+def dashboard(ctx: click.Context, port: int) -> None:
+    """Launch interactive Streamlit dashboard."""
+    import subprocess
+
+    app_path = Path(__file__).parent / "app.py"
+    subprocess.run(
+        [
+            "streamlit",
+            "run",
+            str(app_path),
+            "--server.port",
+            str(port),
+            "--",
+            str(ctx.obj["base_dir"]),
+        ]
+    )
 
 
 if __name__ == "__main__":

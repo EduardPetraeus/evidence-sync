@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import subprocess
 from datetime import date
 from pathlib import Path
 from typing import Optional
@@ -234,3 +235,67 @@ def _dict_to_study(data: dict) -> Study:
         extraction_confidence=data.get("extraction_confidence"),
         full_text_available=data.get("full_text_available", False),
     )
+
+
+def commit_dataset_changes(base_dir: Path, topic_id: str) -> bool:
+    """Commit dataset changes for a topic to git.
+
+    Stages all files under datasets/<topic_id>/ and commits with a
+    conventional commit message. Only commits if there are actual changes.
+    Does NOT auto-push — that is a destructive action the user controls.
+
+    Args:
+        base_dir: The repository root directory.
+        topic_id: The topic identifier.
+
+    Returns:
+        True if a commit was created, False if no changes to commit.
+    """
+    from evidence_sync.config import validate_topic_id
+
+    validate_topic_id(topic_id)
+    dataset_path = f"datasets/{topic_id}/"
+
+    try:
+        # Check if there are any changes to commit
+        status_result = subprocess.run(
+            ["git", "status", "--porcelain", dataset_path],
+            cwd=str(base_dir),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        if not status_result.stdout.strip():
+            logger.info(f"No changes to commit for {topic_id}")
+            return False
+
+        # Count studies for commit message
+        studies_dir = base_dir / "datasets" / topic_id / "studies"
+        n_studies = len(list(studies_dir.glob("*.yaml"))) if studies_dir.exists() else 0
+
+        # Stage changes
+        subprocess.run(
+            ["git", "add", dataset_path],
+            cwd=str(base_dir),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        # Commit
+        commit_msg = f"data: update {topic_id} — {n_studies} studies"
+        subprocess.run(
+            ["git", "commit", "-m", commit_msg],
+            cwd=str(base_dir),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        logger.info(f"Committed dataset changes for {topic_id}: {commit_msg}")
+        return True
+
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Git operation failed for {topic_id}: {e.stderr}")
+        return False
