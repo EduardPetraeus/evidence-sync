@@ -8,6 +8,8 @@ import math
 from datetime import date
 from typing import Optional
 
+import httpx
+
 from evidence_sync.models import (
     BiasRisk,
     EffectMeasure,
@@ -197,6 +199,110 @@ def _apply_extraction(study: Study, data: dict, model: str) -> None:
     if conf is not None:
         conf = min(conf, 1.0)
     study.extraction_confidence = conf
+
+
+def extract_study_data_gemini(
+    study: Study,
+    api_key: str,
+    model: str = "gemini-2.0-flash",
+) -> Study:
+    """Extract structured data using Google Gemini API.
+
+    Uses the same EXTRACTION_PROMPT but calls Gemini instead of Claude.
+
+    Args:
+        study: Study with abstract text populated.
+        api_key: Google Gemini API key.
+        model: Gemini model to use for extraction.
+
+    Returns:
+        Updated study with extracted fields populated.
+    """
+    prompt = EXTRACTION_PROMPT.format(
+        title=study.title,
+        authors=", ".join(study.authors[:5]),
+        journal=study.journal,
+        abstract=study.abstract,
+    )
+
+    try:
+        response = httpx.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}"
+            ":generateContent",
+            params={"key": api_key},
+            json={
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.1,
+                    "maxOutputTokens": 1024,
+                },
+            },
+            timeout=30.0,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        # Extract text from Gemini response
+        response_text = (
+            data["candidates"][0]["content"]["parts"][0]["text"]
+        )
+        extracted = _parse_extraction_response(response_text)
+
+        if extracted:
+            _apply_extraction(study, extracted, f"gemini:{model}")
+
+    except Exception:
+        logger.error(
+            f"Gemini extraction failed for {study.pmid}", exc_info=True
+        )
+
+    return study
+
+
+def extract_study_data_fulltext(
+    study: Study,
+    full_text: str,
+    anthropic_client: object,
+    model: str = "claude-sonnet-4-20250514",
+) -> Study:
+    """Extract structured data from full text instead of abstract.
+
+    Uses a modified prompt that substitutes full text for the abstract,
+    truncated to ~4000 chars to stay within token limits.
+
+    Args:
+        study: Study with metadata populated.
+        full_text: Full text content from PMC.
+        anthropic_client: An initialized anthropic.Anthropic() client.
+        model: Claude model to use for extraction.
+
+    Returns:
+        Updated study with extracted fields populated.
+    """
+    # Truncate full text to ~4000 chars (abstract substitute)
+    truncated_text = full_text[:4000]
+
+    prompt = EXTRACTION_PROMPT.format(
+        title=study.title,
+        authors=", ".join(study.authors[:5]),
+        journal=study.journal,
+        abstract=truncated_text,
+    )
+
+    response = anthropic_client.messages.create(
+        model=model,
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    response_text = response.content[0].text
+    extracted = _parse_extraction_response(response_text)
+
+    if extracted:
+        _apply_extraction(study, extracted, model)
+        study.data_source = "full_text"
+
+    return study
 
 
 def _parse_bias(value: Optional[str]) -> BiasRisk:

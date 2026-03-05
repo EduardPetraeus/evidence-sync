@@ -444,18 +444,27 @@ def build_study_table(
 
     rows = []
     for study in valid:
-        first_author = study.authors[0].split()[-1] if study.authors else "Unknown"
-        rows.append(
-            {
-                "PMID": study.pmid,
-                "Author": f"{first_author} {study.publication_date.year}",
-                "Effect Size": round(study.effect_size, 3),
-                "CI Lower": round(study.ci_lower, 3),
-                "CI Upper": round(study.ci_upper, 3),
-                "Weight (%)": round(weight_map.get(study.pmid, 0), 1),
-                "N (total)": study.sample_size_total or "N/A",
-            }
+        first_author = (
+            study.authors[0].split()[-1] if study.authors else "Unknown"
         )
+        row = {
+            "PMID": study.pmid,
+            "Author": f"{first_author} {study.publication_date.year}",
+            "Effect Size": round(study.effect_size, 3),
+            "CI Lower": round(study.ci_lower, 3),
+            "CI Upper": round(study.ci_upper, 3),
+            "Weight (%)": round(weight_map.get(study.pmid, 0), 1),
+            "N (total)": study.sample_size_total or "N/A",
+        }
+        if study.population:
+            row["Population"] = study.population
+        if study.intervention:
+            row["Intervention"] = study.intervention
+        if study.comparator:
+            row["Comparator"] = study.comparator
+        if study.outcome:
+            row["Outcome"] = study.outcome
+        rows.append(row)
 
     return rows
 
@@ -537,6 +546,13 @@ def main() -> None:
     with_data = [s for s in studies if s.has_extractable_data]
     st.sidebar.metric("With extracted data", len(with_data))
 
+    # Review status counts
+    from evidence_sync.review import get_review_summary
+
+    review_summary = get_review_summary(studies)
+    st.sidebar.metric("Approved", review_summary["approved"])
+    st.sidebar.metric("Rejected", review_summary["rejected"])
+
     if result:
         st.sidebar.metric("Pooled effect", f"{result.pooled_effect:.4f}")
         st.sidebar.metric(
@@ -565,8 +581,8 @@ def main() -> None:
         return
 
     # Main page tabs
-    tab_forest, tab_funnel, tab_timeline, tab_quality = st.tabs(
-        ["Forest Plot", "Funnel Plot", "Evidence Timeline", "Study Quality"]
+    tab_forest, tab_funnel, tab_timeline, tab_quality, tab_review = st.tabs(
+        ["Forest Plot", "Funnel Plot", "Evidence Timeline", "Study Quality", "Review Queue"]
     )
 
     with tab_forest:
@@ -611,6 +627,60 @@ def main() -> None:
         st.subheader("Risk of Bias Assessment")
         fig = build_rob_heatmap(studies)
         st.plotly_chart(fig, use_container_width=True)
+
+    with tab_review:
+        st.subheader("Review Queue")
+
+        # Summary metrics
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Pending", review_summary["pending"])
+        col2.metric("Approved", review_summary["approved"])
+        col3.metric("Rejected", review_summary["rejected"])
+        col4.metric("Corrected", review_summary["corrected"])
+
+        # Pending studies table
+        from evidence_sync.review import get_pending_studies
+
+        pending = get_pending_studies(studies)
+        if pending:
+            st.markdown("### Pending Studies")
+            rows = []
+            for s in pending:
+                conf = s.extraction_confidence
+                if conf is not None:
+                    if conf >= 0.8:
+                        conf_display = f":green[{conf:.2f}]"
+                    elif conf >= 0.5:
+                        conf_display = f":orange[{conf:.2f}]"
+                    else:
+                        conf_display = f":red[{conf:.2f}]"
+                else:
+                    conf_display = "N/A"
+
+                row = {
+                    "PMID": s.pmid,
+                    "Title": s.title[:60],
+                    "Effect Size": (
+                        f"{s.effect_size:.3f}"
+                        if s.effect_size is not None
+                        else "N/A"
+                    ),
+                    "CI": (
+                        f"[{s.ci_lower:.3f}, {s.ci_upper:.3f}]"
+                        if s.ci_lower is not None
+                        and s.ci_upper is not None
+                        else "N/A"
+                    ),
+                    "Confidence": conf_display,
+                }
+                if s.population:
+                    row["Population"] = s.population
+                if s.intervention:
+                    row["Intervention"] = s.intervention
+                rows.append(row)
+            st.dataframe(rows, use_container_width=True)
+        else:
+            st.success("All studies have been reviewed.")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,27 @@
+pmid: "30167890"
+title: "Fluvoxamine for depression in patients with chronic pain: a randomized trial"
+authors: ["Kowalski P", "Ahmed N"]
+journal: "Pain Medicine"
+publication_date: "2018-02-28"
+abstract: >
+  BACKGROUND: Chronic pain and depression frequently co-occur. Fluvoxamine may
+  offer dual benefits through its sigma-1 receptor activity.
+  METHODS: We randomized 100 patients with MDD and chronic musculoskeletal pain
+  to fluvoxamine 100-200 mg/day (n=50) or placebo (n=50) for 8 weeks.
+  The primary outcome was HAM-D response rate.
+  RESULTS: At 8 weeks, 48.0% of fluvoxamine patients responded versus 30.0%
+  of placebo patients. The odds ratio for response was 2.15 (95% CI 0.95-4.87,
+  p=0.067). Pain scores also improved more with fluvoxamine (VAS change -2.1
+  vs -1.3, p=0.04). The study was underpowered for the primary outcome.
+  CONCLUSIONS: Fluvoxamine showed a non-significant trend toward efficacy for
+  depression in chronic pain patients but significantly improved pain scores.
+ground_truth:
+  sample_size_treatment: 50
+  sample_size_control: 50
+  effect_size: 2.15
+  effect_measure: "odds_ratio"
+  ci_lower: 0.95
+  ci_upper: 4.87
+  p_value: 0.067
+  study_design: "rct"
+  primary_outcome: "HAM-D response rate"

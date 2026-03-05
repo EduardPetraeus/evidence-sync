@@ -1,0 +1,29 @@
+pmid: "30045678"
+title: "Escitalopram 10 mg versus placebo for major depressive disorder: results from the EMERGE trial"
+authors: ["Wang Y", "Andersen T", "Garcia M"]
+journal: "Lancet Psychiatry"
+publication_date: "2020-02-10"
+abstract: >
+  BACKGROUND: Escitalopram is the most selective SSRI available. The EMERGE trial was
+  designed to provide definitive evidence of its efficacy at the standard 10 mg dose.
+  METHODS: In this phase III, double-blind, randomized, placebo-controlled trial,
+  400 adults with MDD (HAM-D-17 >=17) were assigned 1:1 to escitalopram 10 mg/day
+  (n=200) or placebo (n=200) for 8 weeks. The primary outcome was the proportion of
+  patients achieving response (>=50% HAM-D-17 reduction) at week 8.
+  RESULTS: Response rates were 64.5% for escitalopram and 47.0% for placebo.
+  The odds ratio was 2.06 (95% CI 1.42-2.99, p<0.001). The NNT was 5.7.
+  Mean change in HAM-D-17 was -13.2 (SD 5.4) versus -10.1 (SD 6.1), difference
+  -3.1 (95% CI -4.2 to -2.0). Escitalopram was well tolerated with low dropout
+  rates (5.5% vs 4.0%).
+  CONCLUSIONS: Escitalopram 10 mg/day provides clinically meaningful and
+  statistically significant improvement in MDD over placebo.
+ground_truth:
+  sample_size_treatment: 200
+  sample_size_control: 200
+  effect_size: 2.06
+  effect_measure: "odds_ratio"
+  ci_lower: 1.42
+  ci_upper: 2.99
+  p_value: 0.001
+  study_design: "rct"
+  primary_outcome: "Response rate (50% HAM-D-17 reduction)"

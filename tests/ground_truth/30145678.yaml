@@ -1,0 +1,31 @@
+pmid: "30145678"
+title: "Fluoxetine for post-stroke depression: a randomized controlled trial with long-term follow-up"
+authors: ["Park S", "Williams D", "Hassan F"]
+journal: "Stroke"
+publication_date: "2017-08-10"
+abstract: >
+  Depression after stroke is common and associated with worse functional
+  outcomes. To determine whether fluoxetine improves depression symptoms
+  after stroke, we enrolled one hundred sixty patients who developed major
+  depression within 3 months of a first ischemic stroke. In this double-blind
+  trial, eighty-two patients were randomly assigned to receive fluoxetine
+  twenty milligrams daily and seventy-eight patients received matching placebo
+  for twelve weeks. The primary efficacy endpoint was the risk ratio for
+  achieving remission on the HAM-D, defined as a score of seven or less.
+  At the twelve-week assessment, remission was observed in thirty-nine percent
+  of the fluoxetine group compared to twenty-one percent of the placebo group.
+  The resulting risk ratio was one point eighty-seven (ninety-five percent
+  confidence interval one point fourteen to three point zero seven), with
+  statistical significance at a p-value of zero point zero one three. Functional
+  recovery as measured by the modified Rankin Scale was also significantly
+  better in the fluoxetine group.
+ground_truth:
+  sample_size_treatment: 82
+  sample_size_control: 78
+  effect_size: 1.87
+  effect_measure: "risk_ratio"
+  ci_lower: 1.14
+  ci_upper: 3.07
+  p_value: 0.013
+  study_design: "rct"
+  primary_outcome: "Remission rate (HAM-D score <=7)"

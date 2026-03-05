@@ -1,0 +1,30 @@
+pmid: "30123456"
+title: "Efficacy of citalopram in patients with comorbid depression and generalized anxiety disorder"
+authors: ["Russo A", "Van den Berg J"]
+journal: "Journal of Clinical Psychopharmacology"
+publication_date: "2020-08-15"
+abstract: >
+  Depression frequently co-occurs with generalized anxiety disorder (GAD), and
+  treatment outcomes in comorbid patients may differ from those with depression
+  alone. We conducted a randomized, double-blind, placebo-controlled study at
+  four university hospitals. The study sample comprised 156 adults with comorbid
+  MDD and GAD. Seventy-eight patients were allocated to citalopram at a flexible
+  dose of 20 to 40 mg daily, and the remaining seventy-eight received an
+  identical placebo. Treatment duration was ten weeks. The primary efficacy
+  measure, HAM-D response defined as at least a fifty percent score reduction,
+  was achieved by forty-six point two percent of the citalopram group and
+  thirty point eight percent of those on placebo. The estimated odds ratio
+  was 1.94, the lower limit of the ninety-five percent confidence interval
+  was 1.02, and the upper limit was 3.69. This difference reached
+  statistical significance at p equals 0.043. Both depression and anxiety
+  symptoms improved more with citalopram than placebo.
+ground_truth:
+  sample_size_treatment: 78
+  sample_size_control: 78
+  effect_size: 1.94
+  effect_measure: "odds_ratio"
+  ci_lower: 1.02
+  ci_upper: 3.69
+  p_value: 0.043
+  study_design: "rct"
+  primary_outcome: "HAM-D response rate (50% score reduction)"

@@ -10,7 +10,7 @@ from typing import Optional
 import numpy as np
 from scipy import stats
 
-from evidence_sync.models import AnalysisResult, EffectMeasure, Study
+from evidence_sync.models import AnalysisResult, EffectMeasure, ReviewStatus, Study
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ def run_meta_analysis(
     studies: list[Study],
     effect_measure: EffectMeasure,
     topic: str = "",
+    require_approval: bool = True,
 ) -> Optional[AnalysisResult]:
     """Run a random-effects meta-analysis using DerSimonian-Laird method.
 
@@ -26,12 +27,22 @@ def run_meta_analysis(
         studies: List of studies with extracted effect sizes and CIs.
         effect_measure: The effect measure type.
         topic: Topic identifier for the result.
+        require_approval: If True, only include approved/corrected studies.
+            Set to False for backward compatibility with existing workflows.
 
     Returns:
         AnalysisResult or None if insufficient data.
     """
     # Filter to studies with extractable data
-    valid = [s for s in studies if s.has_extractable_data and s.se_from_ci]
+    if require_approval:
+        valid = [
+            s for s in studies
+            if s.has_extractable_data
+            and s.se_from_ci
+            and s.review_status in (ReviewStatus.APPROVED, ReviewStatus.CORRECTED)
+        ]
+    else:
+        valid = [s for s in studies if s.has_extractable_data and s.se_from_ci]
     if len(valid) < 2:
         logger.warning(f"Need at least 2 studies with data, got {len(valid)}")
         return None

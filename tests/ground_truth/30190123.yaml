@@ -1,0 +1,29 @@
+pmid: "30190123"
+title: "Vortioxetine for cognitive dysfunction in MDD: a randomized controlled trial"
+authors: ["Clark N", "Sorensen A"]
+journal: "International Clinical Psychopharmacology"
+publication_date: "2020-03-15"
+abstract: >
+  BACKGROUND: Cognitive dysfunction is a core feature of MDD that often persists
+  after mood improvement. Vortioxetine may have procognitive effects.
+  METHODS: We randomized 198 adults with MDD and subjective cognitive complaints
+  to vortioxetine 10-20 mg/day (n=99) or placebo (n=99) for 8 weeks.
+  Co-primary endpoints were change in DSST (Digit Symbol Substitution Test)
+  score and HAM-D-17 total score.
+  RESULTS: Vortioxetine significantly improved DSST scores versus placebo
+  (mean difference 3.4 points, p=0.003) but the HAM-D improvement, while
+  numerically superior, did not reach statistical significance at the
+  primary endpoint (mean difference -1.8, 95% CI -3.7 to 0.1, p=0.063).
+  Response rates were 49.5% versus 40.4%.
+  CONCLUSIONS: Vortioxetine improves cognitive function in MDD regardless
+  of mood improvement. Depression symptom improvement showed a trend.
+ground_truth:
+  sample_size_treatment: 99
+  sample_size_control: 99
+  effect_size: -1.8
+  effect_measure: "mean_difference"
+  ci_lower: -3.7
+  ci_upper: 0.1
+  p_value: 0.063
+  study_design: "rct"
+  primary_outcome: "Change in HAM-D-17 total score"

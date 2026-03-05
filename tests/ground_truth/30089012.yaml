@@ -1,0 +1,28 @@
+pmid: "30089012"
+title: "Sertraline versus placebo in elderly patients with major depression: the SERENITY trial"
+authors: ["Thompson G", "Yamamoto H"]
+journal: "International Journal of Geriatric Psychiatry"
+publication_date: "2020-05-10"
+abstract: >
+  BACKGROUND: Depression in the elderly is undertreated. The SERENITY trial evaluated
+  sertraline in patients aged 65 and older with MDD.
+  METHODS: In a double-blind randomized controlled trial, 180 elderly patients
+  (>=65 years) with MDD were assigned to sertraline 50-100 mg/day (n=90) or
+  placebo (n=90) for 10 weeks. The primary outcome was the HAM-D-17 response
+  rate (>=50% reduction from baseline).
+  RESULTS: Response was achieved by 51.1% of the sertraline group and 35.6% of the
+  placebo group (odds ratio 1.89, 95% CI 1.04 to 3.44, p=0.037). Mean HAM-D
+  change was -10.8 (SD 5.6) versus -8.1 (SD 6.0). Sertraline was generally
+  well tolerated, though falls were more frequent (4.4% vs 1.1%).
+  CONCLUSIONS: Sertraline is effective and safe for MDD in the elderly, though
+  fall risk monitoring is recommended.
+ground_truth:
+  sample_size_treatment: 90
+  sample_size_control: 90
+  effect_size: 1.89
+  effect_measure: "odds_ratio"
+  ci_lower: 1.04
+  ci_upper: 3.44
+  p_value: 0.037
+  study_design: "rct"
+  primary_outcome: "HAM-D-17 response rate (50% reduction)"
