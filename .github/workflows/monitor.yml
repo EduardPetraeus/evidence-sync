@@ -1,0 +1,45 @@
+name: Weekly Evidence Monitor
+
+on:
+  schedule:
+    # Every Monday at 08:00 UTC
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+    inputs:
+      topic_id:
+        description: "Topic ID to monitor (e.g. ssri-depression)"
+        required: true
+        type: string
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -e "."
+
+      - name: Search for new studies
+        run: evidence-sync search ${{ inputs.topic_id || 'ssri-depression' }}
+
+      - name: Run meta-analysis
+        run: evidence-sync analyze ${{ inputs.topic_id || 'ssri-depression' }}
+
+      # NOTE: The extraction step requires ANTHROPIC_API_KEY and is optional.
+      # If studies already have extracted data (effect_size, CI), search + analyze
+      # is sufficient. Only enable extraction when new studies need data pulled
+      # from abstracts via Claude.
+      #
+      # To enable extraction, uncomment the step below:
+      #
+      # - name: Extract data from new studies
+      #   env:
+      #     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      #   run: evidence-sync extract ${{ inputs.topic_id || 'ssri-depression' }}

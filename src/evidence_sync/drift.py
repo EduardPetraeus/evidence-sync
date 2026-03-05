@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from typing import Optional
+from urllib.parse import urlparse
+
+import httpx
 
 from evidence_sync.models import AnalysisResult, DriftResult, ReviewConfig
 
@@ -86,3 +90,67 @@ def detect_drift(
         alert_triggered=alert_triggered,
         alert_reasons=alert_reasons,
     )
+
+
+def _validate_webhook_url(url: str) -> str:
+    """Validate webhook URL scheme to prevent SSRF to internal services.
+
+    Only https:// URLs are accepted.
+
+    Args:
+        url: The webhook URL to validate.
+
+    Returns:
+        The validated URL.
+
+    Raises:
+        ValueError: If the URL scheme is not https.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise ValueError(
+            f"Webhook URL must use https:// scheme, got '{parsed.scheme}://'. "
+            "Plain http is rejected to prevent SSRF to internal services."
+        )
+    return url
+
+
+def send_alert(drift: DriftResult, config: ReviewConfig) -> bool:
+    """Send drift alert via configured channels (webhook, email).
+
+    Args:
+        drift: The drift detection result.
+        config: Review config with alert_webhook and/or alert_email.
+
+    Returns:
+        True if an alert was sent successfully, False otherwise.
+    """
+    sent = False
+
+    if config.alert_webhook:
+        try:
+            url = _validate_webhook_url(config.alert_webhook)
+            payload = {
+                "topic": drift.topic,
+                "previous_effect": drift.previous_effect,
+                "current_effect": drift.current_effect,
+                "change_pct": drift.effect_change_pct,
+                "reasons": drift.alert_reasons,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            response = httpx.post(url, json=payload, timeout=10.0)
+            response.raise_for_status()
+            logger.info(f"Webhook alert sent for {drift.topic}")
+            sent = True
+        except ValueError as e:
+            logger.error(f"Invalid webhook URL: {e}")
+        except httpx.HTTPError as e:
+            logger.error(f"Failed to send webhook alert for {drift.topic}: {e}")
+
+    if config.alert_email:
+        logger.warning(
+            f"Email alerts not implemented — would send to {config.alert_email} "
+            f"for topic {drift.topic}"
+        )
+
+    return sent
