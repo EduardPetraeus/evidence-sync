@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=68.0", "setuptools-scm>=8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evidence-sync"
+version = "0.1.0"
+description = "Living meta-analysis engine — autonomous pipeline that monitors PubMed and maintains always-up-to-date meta-analyses"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    {name = "Claus Eduard Petraeus"},
+]
+keywords = ["meta-analysis", "pubmed", "systematic-review", "evidence-synthesis", "living-review"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+dependencies = [
+    "click>=8.0",
+    "defusedxml>=0.7",
+    "httpx>=0.25",
+    "pyyaml>=6.0",
+    "scipy>=1.11",
+    "numpy>=1.25",
+    "matplotlib>=3.7",
+    "anthropic>=0.40",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4",
+]
+dashboard = [
+    "streamlit>=1.30",
+    "plotly>=5.18",
+]
+
+[project.scripts]
+evidence-sync = "evidence_sync.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/EduardPetraeus/evidence-sync"
+Repository = "https://github.com/EduardPetraeus/evidence-sync"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/evidence_sync/extractor.py" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

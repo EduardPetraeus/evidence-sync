@@ -1,0 +1,25 @@
+topic_id: ssri-depression
+topic_name: "SSRIs vs. Placebo for Major Depressive Disorder in Adults"
+search_query: '(SSRI OR "selective serotonin reuptake inhibitor" OR fluoxetine OR sertraline OR paroxetine OR citalopram OR escitalopram OR fluvoxamine) AND (depression OR "depressive disorder" OR MDD) AND (placebo) AND (adults)'
+effect_measure: odds_ratio
+primary_outcome: "Response rate (50% reduction in depression score)"
+inclusion_criteria:
+  - "Randomized controlled trial"
+  - "Adults (18+) with major depressive disorder"
+  - "SSRI vs placebo comparison"
+  - "Reports response rate or depression score change"
+exclusion_criteria:
+  - "Pediatric populations"
+  - "Treatment-resistant depression"
+  - "Combination therapy (SSRI + other antidepressant)"
+  - "Non-MDD diagnosis (bipolar, anxiety-only)"
+publication_types:
+  - "Randomized Controlled Trial"
+  - "Clinical Trial"
+min_date: "2000"
+max_date: null
+effect_change_threshold_pct: 10.0
+heterogeneity_change_threshold: 15.0
+schedule: weekly
+alert_webhook: null
+alert_email: null
