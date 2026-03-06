@@ -952,12 +952,10 @@ def generate_summary_of_findings(
         if high_rob_count > len(studies_with_rob) / 2:
             rob_serious = "serious"
 
-    # Inconsistency (based on I-squared)
+    # Inconsistency (based on I-squared) — GRADE: >50% = serious, >75% = very serious
     inconsistency = "not_serious"
-    if result.i_squared > 75.0:
+    if result.i_squared > 50.0:
         inconsistency = "serious"
-    elif result.i_squared > 50.0:
-        inconsistency = "not_serious"  # moderate, but not serious
 
     # Imprecision (based on CI width and sample size)
     imprecision = "not_serious"
