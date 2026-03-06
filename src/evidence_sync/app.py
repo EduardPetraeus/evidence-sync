@@ -360,9 +360,7 @@ def build_rob_heatmap(
     with_rob = [s for s in studies if s.risk_of_bias is not None]
     if not with_rob:
         fig = go.Figure()
-        fig.add_annotation(
-            text="No risk of bias data available", showarrow=False
-        )
+        fig.add_annotation(text="No risk of bias data available", showarrow=False)
         return fig
 
     domains = [
@@ -403,9 +401,9 @@ def build_rob_heatmap(
             text=text_data,
             texttemplate="%{text}",
             colorscale=[
-                [0, "#2ecc71"],      # green = low
-                [0.5, "#f1c40f"],    # yellow = unclear
-                [1, "#e74c3c"],      # red = high
+                [0, "#2ecc71"],  # green = low
+                [0.5, "#f1c40f"],  # yellow = unclear
+                [1, "#e74c3c"],  # red = high
             ],
             showscale=False,
             hovertemplate="Study: %{y}<br>Domain: %{x}<br>Risk: %{text}<extra></extra>",
@@ -444,9 +442,7 @@ def build_study_table(
 
     rows = []
     for study in valid:
-        first_author = (
-            study.authors[0].split()[-1] if study.authors else "Unknown"
-        )
+        first_author = study.authors[0].split()[-1] if study.authors else "Unknown"
         row = {
             "PMID": study.pmid,
             "Author": f"{first_author} {study.publication_date.year}",
@@ -581,8 +577,24 @@ def main() -> None:
         return
 
     # Main page tabs
-    tab_forest, tab_funnel, tab_timeline, tab_quality, tab_review = st.tabs(
-        ["Forest Plot", "Funnel Plot", "Evidence Timeline", "Study Quality", "Review Queue"]
+    (
+        tab_forest,
+        tab_funnel,
+        tab_timeline,
+        tab_quality,
+        tab_review,
+        tab_prisma,
+        tab_export,
+    ) = st.tabs(
+        [
+            "Forest Plot",
+            "Funnel Plot",
+            "Evidence Timeline",
+            "Study Quality",
+            "Review Queue",
+            "PRISMA",
+            "Export",
+        ]
     )
 
     with tab_forest:
@@ -660,15 +672,10 @@ def main() -> None:
                 row = {
                     "PMID": s.pmid,
                     "Title": s.title[:60],
-                    "Effect Size": (
-                        f"{s.effect_size:.3f}"
-                        if s.effect_size is not None
-                        else "N/A"
-                    ),
+                    "Effect Size": (f"{s.effect_size:.3f}" if s.effect_size is not None else "N/A"),
                     "CI": (
                         f"[{s.ci_lower:.3f}, {s.ci_upper:.3f}]"
-                        if s.ci_lower is not None
-                        and s.ci_upper is not None
+                        if s.ci_lower is not None and s.ci_upper is not None
                         else "N/A"
                     ),
                     "Confidence": conf_display,
@@ -681,6 +688,87 @@ def main() -> None:
             st.dataframe(rows, use_container_width=True)
         else:
             st.success("All studies have been reviewed.")
+
+    with tab_prisma:
+        st.subheader("PRISMA 2020 Compliance")
+
+        from evidence_sync.prisma import (
+            format_prisma_flow_text,
+            generate_prisma_checklist,
+            generate_prisma_flow,
+        )
+
+        flow = generate_prisma_flow(studies, [], config)
+
+        # Flow diagram
+        st.markdown("### Flow Diagram")
+        st.code(format_prisma_flow_text(flow), language=None)
+
+        # Checklist
+        st.markdown("### PRISMA Checklist")
+        checklist = generate_prisma_checklist(
+            studies,
+            config,
+            result=result,
+            flow=flow,
+        )
+        compliant_count = sum(1 for i in checklist if i.compliant)
+        st.metric(
+            "Compliance",
+            f"{compliant_count}/{len(checklist)}",
+            f"{compliant_count / len(checklist) * 100:.0f}%",
+        )
+
+        checklist_rows = []
+        for item in checklist:
+            checklist_rows.append(
+                {
+                    "#": item.number,
+                    "Section": item.section,
+                    "Topic": item.topic,
+                    "Compliant": "Yes" if item.compliant else "No",
+                    "Evidence": item.evidence[:60] if item.evidence else "-",
+                }
+            )
+        st.dataframe(checklist_rows, use_container_width=True)
+
+    with tab_export:
+        st.subheader("Export Data")
+
+        from evidence_sync.export import (
+            export_csv,
+            export_r_dataframe,
+            export_revman_xml,
+        )
+
+        col_csv, col_xml, col_r = st.columns(3)
+
+        with col_csv:
+            csv_data = export_csv(studies)
+            st.download_button(
+                "Download CSV",
+                csv_data,
+                file_name=f"{selected_topic}_studies.csv",
+                mime="text/csv",
+            )
+
+        with col_xml:
+            xml_data = export_revman_xml(studies, config, result=result)
+            st.download_button(
+                "Download RevMan XML",
+                xml_data,
+                file_name=f"{selected_topic}_revman.xml",
+                mime="application/xml",
+            )
+
+        with col_r:
+            r_data = export_r_dataframe(studies)
+            st.download_button(
+                "Download R Data",
+                r_data,
+                file_name=f"{selected_topic}_metafor.csv",
+                mime="text/csv",
+            )
 
 
 if __name__ == "__main__":
