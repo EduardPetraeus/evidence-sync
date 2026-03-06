@@ -1,0 +1,30 @@
+pmid: "30012345"
+title: "Fluoxetine versus placebo for major depressive disorder: a randomized controlled trial"
+authors: ["Anderson K", "Chen W"]
+journal: "Journal of Clinical Psychiatry"
+publication_date: "2018-03-15"
+abstract: >
+  BACKGROUND: Fluoxetine is widely prescribed for major depressive disorder (MDD), yet
+  large-scale placebo-controlled data remain limited. We aimed to evaluate the efficacy
+  and safety of fluoxetine 20 mg/day compared to placebo in adults with MDD.
+  METHODS: In this double-blind, randomized controlled trial, 238 adults (aged 18-65)
+  meeting DSM-5 criteria for MDD were randomly assigned to fluoxetine 20 mg/day (n=120)
+  or matching placebo (n=118) for 8 weeks. The primary outcome was treatment response,
+  defined as a 50% or greater reduction in HAM-D-17 score from baseline. Randomization
+  was computer-generated with concealed allocation.
+  RESULTS: At week 8, 58.3% of fluoxetine-treated patients achieved response compared
+  to 44.1% of placebo patients. The odds ratio for response was 1.54 (95% CI: 1.12 to
+  2.11; p=0.008). The number needed to treat was 7.0. Adverse events were more frequent
+  in the fluoxetine group (nausea 22.5% vs 10.2%, headache 15.0% vs 11.9%).
+  CONCLUSIONS: Fluoxetine 20 mg/day is significantly more effective than placebo for
+  treatment of MDD, with a moderate effect size and acceptable tolerability.
+ground_truth:
+  sample_size_treatment: 120
+  sample_size_control: 118
+  effect_size: 1.54
+  effect_measure: "odds_ratio"
+  ci_lower: 1.12
+  ci_upper: 2.11
+  p_value: 0.008
+  study_design: "rct"
+  primary_outcome: "Response rate (50% reduction in HAM-D-17 score)"

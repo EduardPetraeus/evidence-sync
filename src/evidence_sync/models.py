@@ -24,6 +24,13 @@ class EffectMeasure(Enum):
     HAZARD_RATIO = "hazard_ratio"
 
 
+class ReviewStatus(Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    CORRECTED = "corrected"
+
+
 class BiasRisk(Enum):
     LOW = "low"
     UNCLEAR = "unclear"
@@ -87,6 +94,28 @@ class Study:
     extraction_model: Optional[str] = None
     extraction_confidence: Optional[float] = None
     full_text_available: bool = False
+
+    # Review workflow
+    review_status: ReviewStatus = ReviewStatus.PENDING
+    reviewer: Optional[str] = None
+    review_date: Optional[date] = None
+    review_notes: Optional[str] = None
+
+    # PICO extraction
+    population: Optional[str] = None
+    intervention: Optional[str] = None
+    comparator: Optional[str] = None
+    outcome: Optional[str] = None
+
+    # Data provenance
+    data_source: str = "abstract"  # "abstract", "full_text", "registry", "manual"
+    pmc_id: Optional[str] = None
+    nct_id: Optional[str] = None
+
+    # Original values before correction (for audit trail)
+    original_effect_size: Optional[float] = None
+    original_ci_lower: Optional[float] = None
+    original_ci_upper: Optional[float] = None
 
     @property
     def sample_size_total(self) -> Optional[int]:
@@ -165,6 +194,18 @@ class DriftResult:
     heterogeneity_change: float
     alert_triggered: bool
     alert_reasons: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ScreeningResult:
+    """Result of automated study screening."""
+
+    pmid: str
+    relevance_score: float  # 0.0-1.0
+    decision: str  # "include", "exclude", "uncertain"
+    reasons: list[str] = field(default_factory=list)
+    screening_date: Optional[date] = None
+    screening_model: Optional[str] = None
 
 
 @dataclass

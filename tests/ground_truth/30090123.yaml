@@ -1,0 +1,28 @@
+pmid: "30090123"
+title: "Escitalopram for prevention of relapse in recurrent major depression: a randomized trial"
+authors: ["Muller D", "Petersen S", "Kim B"]
+journal: "Archives of General Psychiatry"
+publication_date: "2019-11-01"
+abstract: >
+  BACKGROUND: Relapse prevention is critical in recurrent MDD. This study examined
+  escitalopram maintenance treatment versus placebo for relapse prevention.
+  METHODS: Patients (n=344) who responded to open-label escitalopram were randomized
+  to continue escitalopram 10-20 mg/day (n=172) or switch to placebo (n=172)
+  for 52 weeks. The primary outcome was relapse, defined as HAM-D-17 >=14
+  on two consecutive visits. This was a double-blind, randomized controlled trial.
+  RESULTS: Relapse occurred in 22.1% of escitalopram patients and 42.4% of
+  placebo patients. The risk ratio for relapse was 0.52 (95% CI 0.38 to 0.72,
+  p<0.001). Median time to relapse was not reached in the escitalopram group
+  versus 38 weeks in the placebo group.
+  CONCLUSIONS: Continued escitalopram treatment significantly reduces relapse
+  risk in recurrent MDD and should be considered for maintenance therapy.
+ground_truth:
+  sample_size_treatment: 172
+  sample_size_control: 172
+  effect_size: 0.52
+  effect_measure: "risk_ratio"
+  ci_lower: 0.38
+  ci_upper: 0.72
+  p_value: 0.001
+  study_design: "rct"
+  primary_outcome: "Relapse rate (HAM-D-17 >=14 on two consecutive visits)"

@@ -10,7 +10,7 @@ from typing import Optional
 import numpy as np
 from scipy import stats
 
-from evidence_sync.models import AnalysisResult, EffectMeasure, Study
+from evidence_sync.models import AnalysisResult, EffectMeasure, ReviewStatus, Study
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ def run_meta_analysis(
     studies: list[Study],
     effect_measure: EffectMeasure,
     topic: str = "",
+    require_approval: bool = True,
 ) -> Optional[AnalysisResult]:
     """Run a random-effects meta-analysis using DerSimonian-Laird method.
 
@@ -26,12 +27,39 @@ def run_meta_analysis(
         studies: List of studies with extracted effect sizes and CIs.
         effect_measure: The effect measure type.
         topic: Topic identifier for the result.
+        require_approval: If True, only include approved/corrected studies.
+            Set to False for backward compatibility with existing workflows.
 
     Returns:
         AnalysisResult or None if insufficient data.
     """
     # Filter to studies with extractable data
-    valid = [s for s in studies if s.has_extractable_data and s.se_from_ci]
+    with_data = [s for s in studies if s.has_extractable_data and s.se_from_ci]
+
+    if require_approval:
+        # Auto-detect: if no studies have been explicitly reviewed, skip approval gate
+        any_reviewed = any(
+            s.review_status != ReviewStatus.PENDING for s in with_data
+        )
+        if any_reviewed:
+            valid = [
+                s for s in with_data
+                if s.review_status in (ReviewStatus.APPROVED, ReviewStatus.CORRECTED)
+            ]
+            n_filtered = len(with_data) - len(valid)
+            if n_filtered > 0:
+                logger.info(
+                    f"Review filter: {len(valid)} approved of {len(with_data)} "
+                    f"with data ({n_filtered} pending/rejected)"
+                )
+        else:
+            valid = with_data
+            logger.info(
+                "No studies reviewed yet — including all studies with data"
+            )
+    else:
+        valid = with_data
+
     if len(valid) < 2:
         logger.warning(f"Need at least 2 studies with data, got {len(valid)}")
         return None

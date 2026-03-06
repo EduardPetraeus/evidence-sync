@@ -1,0 +1,31 @@
+pmid: "30245678"
+title: "Fluoxetine versus placebo for major depression: efficacy on mood, anxiety, and sleep outcomes"
+authors: ["Bell S", "Kurosawa T", "Ibrahim A"]
+journal: "Journal of Psychiatric Research"
+publication_date: "2019-09-20"
+abstract: >
+  BACKGROUND: MDD is characterized by multiple symptom domains. We examined
+  fluoxetine efficacy across mood, anxiety, and sleep outcomes simultaneously.
+  METHODS: In this 10-week, double-blind, randomized, placebo-controlled trial,
+  280 adults with MDD received fluoxetine 20-40 mg/day (n=140) or placebo (n=140).
+  The pre-specified primary outcome was HAM-D-17 response rate (>=50% reduction).
+  Secondary outcomes included HAM-A change score and Pittsburgh Sleep Quality
+  Index (PSQI) change score.
+  RESULTS: PRIMARY OUTCOME: HAM-D response was achieved by 59.3% of fluoxetine
+  versus 42.1% of placebo patients (OR 2.00, 95% CI 1.27-3.15, p=0.003).
+  SECONDARY OUTCOMES: HAM-A decreased by 8.2 (SD 4.1) versus 5.6 (SD 4.8)
+  points (mean difference -2.6, 95% CI -3.6 to -1.6, p<0.001). PSQI improved
+  by 3.1 (SD 2.8) versus 1.9 (SD 2.5) points (mean difference -1.2, 95% CI
+  -1.9 to -0.5, p=0.001).
+  CONCLUSIONS: Fluoxetine provides broad-spectrum improvement across mood,
+  anxiety, and sleep domains in MDD.
+ground_truth:
+  sample_size_treatment: 140
+  sample_size_control: 140
+  effect_size: 2.00
+  effect_measure: "odds_ratio"
+  ci_lower: 1.27
+  ci_upper: 3.15
+  p_value: 0.003
+  study_design: "rct"
+  primary_outcome: "HAM-D-17 response rate (50% reduction)"

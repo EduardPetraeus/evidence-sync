@@ -148,16 +148,31 @@ def search(ctx: click.Context, topic_id: str, max_results: int) -> None:
 
 @cli.command()
 @click.argument("topic_id", callback=_validated_topic_id)
-@click.option("--model", default="claude-sonnet-4-20250514", help="Claude model for extraction")
 @click.option(
-    "--auto-commit", is_flag=True, default=False, help="Auto-commit changes to git"
+    "--model", default="claude-sonnet-4-20250514", help="Model for extraction"
+)
+@click.option(
+    "--provider",
+    type=click.Choice(["claude", "gemini"]),
+    default="claude",
+    help="AI provider for extraction",
+)
+@click.option(
+    "--auto-commit", is_flag=True, default=False,
+    help="Auto-commit changes to git",
 )
 @click.pass_context
-def extract(ctx: click.Context, topic_id: str, model: str, auto_commit: bool) -> None:
-    """Extract data from studies using Claude."""
-    import anthropic
+def extract(
+    ctx: click.Context,
+    topic_id: str,
+    model: str,
+    provider: str,
+    auto_commit: bool,
+) -> None:
+    """Extract data from studies using Claude or Gemini."""
+    import os
 
-    from evidence_sync.extractor import extract_study_data
+    from evidence_sync.extractor import extract_study_data, extract_study_data_gemini
 
     base_dir = ctx.obj["base_dir"]
     studies_dir = get_studies_dir(base_dir, topic_id)
@@ -168,21 +183,85 @@ def extract(ctx: click.Context, topic_id: str, model: str, auto_commit: bool) ->
         click.echo("All studies already have extracted data.")
         return
 
-    click.echo(f"Extracting data from {len(unextracted)} studies using {model}...")
-    client = anthropic.Anthropic()
+    label = f"{provider}:{model}" if provider == "gemini" else model
+    click.echo(
+        f"Extracting data from {len(unextracted)} studies using {label}..."
+    )
 
-    for i, study in enumerate(unextracted, 1):
-        click.echo(f"  [{i}/{len(unextracted)}] {study.pmid}: {study.title[:60]}...")
-        extract_study_data(study, client, model=model)
-        save_study(study, studies_dir)
+    if provider == "gemini":
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+        if not api_key:
+            click.echo(
+                "Error: GEMINI_API_KEY environment variable is required "
+                "for Gemini provider."
+            )
+            return
+        for i, study in enumerate(unextracted, 1):
+            click.echo(
+                f"  [{i}/{len(unextracted)}] {study.pmid}: "
+                f"{study.title[:60]}..."
+            )
+            extract_study_data_gemini(study, api_key, model=model)
+            save_study(study, studies_dir)
+    else:
+        import anthropic
 
-    click.echo(f"Extraction complete. {len(unextracted)} studies processed.")
+        client = anthropic.Anthropic()
+        for i, study in enumerate(unextracted, 1):
+            click.echo(
+                f"  [{i}/{len(unextracted)}] {study.pmid}: "
+                f"{study.title[:60]}..."
+            )
+            extract_study_data(study, client, model=model)
+            save_study(study, studies_dir)
+
+    click.echo(
+        f"Extraction complete. {len(unextracted)} studies processed."
+    )
 
     if auto_commit:
         if commit_dataset_changes(base_dir, topic_id):
             click.echo("Changes committed to git.")
         else:
             click.echo("No changes to commit.")
+
+
+@cli.command()
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.pass_context
+def enrich(ctx: click.Context, topic_id: str) -> None:
+    """Enrich studies with full-text and registry data."""
+    from evidence_sync.fulltext import enrich_study_with_fulltext
+
+    base_dir = ctx.obj["base_dir"]
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    studies = load_all_studies(studies_dir)
+
+    if not studies:
+        click.echo(f"No studies found for topic '{topic_id}'.")
+        return
+
+    enriched_count = 0
+    for i, study in enumerate(studies, 1):
+        click.echo(
+            f"  [{i}/{len(studies)}] {study.pmid}: {study.title[:60]}..."
+        )
+        if enrich_study_with_fulltext(study):
+            save_study(study, studies_dir)
+            enriched_count += 1
+            source = study.data_source
+            extras = []
+            if study.pmc_id:
+                extras.append(f"PMC:{study.pmc_id}")
+            if study.nct_id:
+                extras.append(f"NCT:{study.nct_id}")
+            detail = f" ({', '.join(extras)})" if extras else ""
+            click.echo(f"    -> enriched [{source}]{detail}")
+
+    click.echo(
+        f"Enrichment complete. {enriched_count}/{len(studies)} "
+        f"studies enriched."
+    )
 
 
 @cli.command()
@@ -363,6 +442,91 @@ def list_topics(ctx: click.Context) -> None:
 
 
 @cli.command()
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.option(
+    "--ground-truth-dir",
+    type=click.Path(exists=True, path_type=Path),
+    default=None,
+    help="Directory with ground truth YAML files (default: tests/ground_truth/)",
+)
+@click.pass_context
+def validate(ctx: click.Context, topic_id: str, ground_truth_dir: Path | None) -> None:
+    """Validate extraction accuracy against ground truth."""
+    from datetime import date as date_cls
+
+    from evidence_sync.accuracy import (
+        compare_extraction,
+        compute_accuracy_report,
+        format_accuracy_report,
+        load_ground_truth,
+    )
+    from evidence_sync.extractor import extract_study_data_from_dict
+    from evidence_sync.models import Study
+    from evidence_sync.versioning import load_study as load_study_from_file
+
+    base_dir = ctx.obj["base_dir"]
+    studies_dir = get_studies_dir(base_dir, topic_id)
+
+    # Determine ground truth directory
+    if ground_truth_dir is None:
+        ground_truth_dir = Path(__file__).parent.parent.parent / "tests" / "ground_truth"
+
+    if not ground_truth_dir.exists():
+        click.echo(f"Ground truth directory not found: {ground_truth_dir}")
+        return
+
+    gt_entries = load_ground_truth(ground_truth_dir)
+    if not gt_entries:
+        click.echo("No ground truth entries found.")
+        return
+
+    click.echo(f"Loaded {len(gt_entries)} ground truth entries from {ground_truth_dir}")
+
+    results = []
+    for gt_entry in gt_entries:
+        pmid = str(gt_entry["pmid"])
+        gt_data = gt_entry["ground_truth"]
+
+        # Check if extracted study exists on disk
+        study_path = studies_dir / f"{pmid}.yaml"
+        if study_path.exists():
+            extracted_study = load_study_from_file(study_path)
+        else:
+            # Create study from ground truth metadata and apply as extracted data
+            pub_date = gt_entry.get("publication_date", "2020-01-01")
+            if isinstance(pub_date, str):
+                pub_date = date_cls.fromisoformat(pub_date)
+
+            study = Study(
+                pmid=pmid,
+                title=gt_entry.get("title", ""),
+                authors=gt_entry.get("authors", []),
+                journal=gt_entry.get("journal", ""),
+                publication_date=pub_date,
+                abstract=gt_entry.get("abstract", ""),
+            )
+            extracted_study = extract_study_data_from_dict(study, gt_data, model="ground-truth")
+
+        comparison = compare_extraction(extracted_study, gt_data)
+        results.append(comparison)
+        acc = comparison["accuracy"]
+        if acc >= 0.8:
+            tag = "OK"
+        elif acc >= 0.5:
+            tag = "WARN"
+        else:
+            tag = "FAIL"
+        click.echo(
+            f"  [{tag}] {pmid}: {acc:.0%} "
+            f"({comparison['n_correct']}/{comparison['n_total']})"
+        )
+
+    report = compute_accuracy_report(results)
+    click.echo("")
+    click.echo(format_accuracy_report(report))
+
+
+@cli.command()
 @click.option("--port", default=8501, help="Port for dashboard")
 @click.pass_context
 def dashboard(ctx: click.Context, port: int) -> None:
@@ -381,6 +545,186 @@ def dashboard(ctx: click.Context, port: int) -> None:
             str(ctx.obj["base_dir"]),
         ]
     )
+
+
+@cli.command()
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.option(
+    "--model",
+    default="claude-sonnet-4-20250514",
+    help="Claude model for screening",
+)
+@click.pass_context
+def screen(
+    ctx: click.Context, topic_id: str, model: str,
+) -> None:
+    """Screen studies for relevance using AI."""
+    import anthropic
+
+    from evidence_sync.screening import (
+        get_screening_summary,
+        screen_study,
+    )
+
+    base_dir = ctx.obj["base_dir"]
+    config_path = base_dir / "datasets" / topic_id / "config.yaml"
+    config = load_review_config(config_path)
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    studies = load_all_studies(studies_dir)
+
+    # Screen unscreened studies (no PICO data yet)
+    unscreened = [s for s in studies if s.population is None]
+    if not unscreened:
+        click.echo("All studies already screened.")
+        return
+
+    click.echo(f"Screening {len(unscreened)} studies...")
+    client = anthropic.Anthropic()
+
+    results = []
+    for i, study in enumerate(unscreened, 1):
+        click.echo(
+            f"  [{i}/{len(unscreened)}] "
+            f"{study.pmid}: {study.title[:60]}..."
+        )
+        result = screen_study(study, config, client, model)
+        results.append(result)
+        save_study(study, studies_dir)
+
+    # Show summary
+    summary = get_screening_summary(results)
+    click.echo("\nScreening complete:")
+    click.echo(f"  Include: {summary['include']}")
+    click.echo(f"  Exclude: {summary['exclude']}")
+    click.echo(f"  Uncertain: {summary['uncertain']}")
+    click.echo(f"  Avg relevance: {summary['avg_relevance']:.2f}")
+
+
+@cli.group()
+def review():
+    """Manage study review workflow."""
+    pass
+
+
+@review.command(name="pending")
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.pass_context
+def review_pending(ctx: click.Context, topic_id: str) -> None:
+    """List studies pending review."""
+    from evidence_sync.review import get_pending_studies
+
+    base_dir = ctx.obj["base_dir"]
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    studies = load_all_studies(studies_dir)
+    pending = get_pending_studies(studies)
+
+    if not pending:
+        click.echo("No studies pending review.")
+        return
+
+    click.echo(f"Pending review ({len(pending)} studies):\n")
+    for s in pending:
+        conf = f" (confidence: {s.extraction_confidence:.2f})" if s.extraction_confidence else ""
+        data = ""
+        if s.has_extractable_data:
+            data = f" | ES={s.effect_size:.3f} [{s.ci_lower:.3f}, {s.ci_upper:.3f}]"
+        click.echo(f"  {s.pmid}: {s.title[:60]}{data}{conf}")
+
+
+@review.command(name="approve")
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.argument("pmid")
+@click.option("--reviewer", default="cli-user", help="Reviewer name")
+@click.option("--notes", default=None, help="Review notes")
+@click.pass_context
+def review_approve(
+    ctx: click.Context, topic_id: str, pmid: str, reviewer: str, notes: str | None,
+) -> None:
+    """Approve a study's extracted data."""
+    from evidence_sync.review import approve_study
+
+    base_dir = ctx.obj["base_dir"]
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    studies = load_all_studies(studies_dir)
+
+    study = next((s for s in studies if s.pmid == pmid), None)
+    if study is None:
+        click.echo(f"Study {pmid} not found in topic '{topic_id}'.")
+        return
+
+    approve_study(study, reviewer, notes)
+    save_study(study, studies_dir)
+    click.echo(f"Approved study {pmid} (reviewer: {reviewer})")
+
+
+@review.command(name="reject")
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.argument("pmid")
+@click.option("--reviewer", default="cli-user", help="Reviewer name")
+@click.option("--notes", default=None, help="Review notes")
+@click.pass_context
+def review_reject(
+    ctx: click.Context, topic_id: str, pmid: str, reviewer: str, notes: str | None,
+) -> None:
+    """Reject a study's extracted data."""
+    from evidence_sync.review import reject_study
+
+    base_dir = ctx.obj["base_dir"]
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    studies = load_all_studies(studies_dir)
+
+    study = next((s for s in studies if s.pmid == pmid), None)
+    if study is None:
+        click.echo(f"Study {pmid} not found in topic '{topic_id}'.")
+        return
+
+    reject_study(study, reviewer, notes)
+    save_study(study, studies_dir)
+    click.echo(f"Rejected study {pmid} (reviewer: {reviewer})")
+
+
+@review.command(name="approve-all")
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.option("--reviewer", default="cli-user", help="Reviewer name")
+@click.pass_context
+def review_approve_all(ctx: click.Context, topic_id: str, reviewer: str) -> None:
+    """Approve all pending studies (batch operation)."""
+    from evidence_sync.review import approve_study, get_pending_studies
+
+    base_dir = ctx.obj["base_dir"]
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    studies = load_all_studies(studies_dir)
+    pending = get_pending_studies(studies)
+
+    if not pending:
+        click.echo("No studies pending review.")
+        return
+
+    for study in pending:
+        approve_study(study, reviewer)
+        save_study(study, studies_dir)
+
+    click.echo(f"Approved {len(pending)} studies (reviewer: {reviewer})")
+
+
+@review.command(name="summary")
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.pass_context
+def review_summary(ctx: click.Context, topic_id: str) -> None:
+    """Show review status summary."""
+    from evidence_sync.review import get_review_summary
+
+    base_dir = ctx.obj["base_dir"]
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    studies = load_all_studies(studies_dir)
+    summary = get_review_summary(studies)
+
+    click.echo(f"Review summary for '{topic_id}':")
+    click.echo(f"  Total:     {summary['total']}")
+    click.echo(f"  Pending:   {summary['pending']}")
+    click.echo(f"  Approved:  {summary['approved']}")
+    click.echo(f"  Rejected:  {summary['rejected']}")
+    click.echo(f"  Corrected: {summary['corrected']}")
 
 
 if __name__ == "__main__":

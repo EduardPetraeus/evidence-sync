@@ -1,0 +1,30 @@
+pmid: "30067890"
+title: "Fluvoxamine versus placebo for major depression: a dose-finding randomized controlled trial"
+authors: ["Nakamura T", "Olsen P"]
+journal: "Journal of Affective Disorders"
+publication_date: "2017-05-15"
+abstract: >
+  BACKGROUND: Fluvoxamine is an SSRI with unique sigma-1 receptor agonist properties.
+  Optimal dosing for MDD remains unclear.
+  METHODS: This double-blind, randomized, placebo-controlled trial enrolled 180
+  patients with MDD. Patients were randomized to fluvoxamine 100 mg/day (n=60),
+  fluvoxamine 200 mg/day (n=60), or placebo (n=60) for 8 weeks. The primary
+  outcome was response rate (>=50% HAM-D-17 reduction).
+  RESULTS: Response rates were 53.3%, 60.0%, and 38.3% for fluvoxamine 100 mg,
+  fluvoxamine 200 mg, and placebo, respectively. The combined fluvoxamine group
+  (n=120) showed an odds ratio of 1.82 (95% CI 1.01-3.29, p=0.047) versus
+  placebo. The 200 mg dose was superior to placebo (OR 2.41, 95% CI 1.17-4.97,
+  p=0.017) while the 100 mg dose showed a trend (OR 1.84, 95% CI 0.89-3.79,
+  p=0.098).
+  CONCLUSIONS: Fluvoxamine at 200 mg/day demonstrates clear efficacy in MDD.
+  The 100 mg dose shows a positive trend but requires larger samples.
+ground_truth:
+  sample_size_treatment: 120
+  sample_size_control: 60
+  effect_size: 1.82
+  effect_measure: "odds_ratio"
+  ci_lower: 1.01
+  ci_upper: 3.29
+  p_value: 0.047
+  study_design: "rct"
+  primary_outcome: "Response rate (50% HAM-D-17 reduction)"

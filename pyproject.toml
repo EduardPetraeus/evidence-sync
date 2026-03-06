@@ -42,6 +42,7 @@ dashboard = [
     "streamlit>=1.30",
     "plotly>=5.18",
 ]
+gemini = []  # Gemini uses REST API via httpx (already a core dep) — no extra deps needed
 
 [project.scripts]
 evidence-sync = "evidence_sync.cli:cli"

@@ -1,0 +1,29 @@
+pmid: "30101234"
+title: "Fluoxetine versus placebo in adolescent major depression: a multicenter randomized trial"
+authors: ["Roberts E", "Li Q", "Fernandez C"]
+journal: "Journal of the American Academy of Child and Adolescent Psychiatry"
+publication_date: "2018-06-20"
+abstract: >
+  BACKGROUND: Evidence for SSRI efficacy in adolescent depression is limited and
+  controversy exists regarding risk-benefit balance.
+  METHODS: This multicenter, double-blind, randomized, placebo-controlled trial
+  enrolled 220 adolescents (aged 12-17) with MDD. Patients received fluoxetine
+  20 mg/day (n=110) or placebo (n=110) for 12 weeks. The primary outcome
+  was treatment response (CDRS-R score decrease >=50%).
+  RESULTS: At 12 weeks, the response rate was 60.9% for fluoxetine and 47.3%
+  for placebo. The odds ratio for response was 1.73 (95% CI 1.03 to 2.91,
+  p=0.038). Mean CDRS-R change was -25.3 (SD 12.1) versus -20.8 (SD 11.6).
+  Suicidal ideation rates were monitored carefully and did not differ
+  significantly between groups (3.6% vs 2.7%, p=0.68).
+  CONCLUSIONS: Fluoxetine is effective for adolescent MDD with close monitoring
+  of suicidality.
+ground_truth:
+  sample_size_treatment: 110
+  sample_size_control: 110
+  effect_size: 1.73
+  effect_measure: "odds_ratio"
+  ci_lower: 1.03
+  ci_upper: 2.91
+  p_value: 0.038
+  study_design: "rct"
+  primary_outcome: "Response rate (CDRS-R decrease >=50%)"

@@ -1,0 +1,28 @@
+pmid: "30023456"
+title: "Sertraline for moderate-to-severe depression: an 8-week double-blind placebo-controlled study"
+authors: ["Martinez R", "Liu J", "Patel S"]
+journal: "American Journal of Psychiatry"
+publication_date: "2019-07-01"
+abstract: >
+  BACKGROUND: Sertraline is one of the most commonly prescribed SSRIs worldwide.
+  Updated evidence on its efficacy in moderate-to-severe MDD is needed.
+  METHODS: We conducted a multicenter, double-blind, randomized, placebo-controlled
+  trial enrolling 300 adults with moderate-to-severe MDD (HAM-D-17 score >=18).
+  Participants were assigned 1:1 to sertraline 50-200 mg/day (n=150) or placebo (n=150).
+  The primary endpoint was response rate at week 8, defined as >=50% reduction in HAM-D-17.
+  RESULTS: The response rate was 62.7% in the sertraline group versus 46.0% in the
+  placebo group (odds ratio 1.97, 95% CI 1.28-3.04, p=0.002). Remission rates
+  (HAM-D-17 <=7) were 38.0% versus 24.7% (p=0.010). Sertraline was well tolerated;
+  the most common adverse events were gastrointestinal complaints (18.7% vs 8.0%).
+  CONCLUSIONS: Sertraline demonstrated significant superiority over placebo in
+  moderate-to-severe MDD, with robust response and remission rates.
+ground_truth:
+  sample_size_treatment: 150
+  sample_size_control: 150
+  effect_size: 1.97
+  effect_measure: "odds_ratio"
+  ci_lower: 1.28
+  ci_upper: 3.04
+  p_value: 0.002
+  study_design: "rct"
+  primary_outcome: "Response rate (50% reduction in HAM-D-17)"

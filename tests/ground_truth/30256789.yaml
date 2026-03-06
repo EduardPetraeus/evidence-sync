@@ -1,0 +1,30 @@
+pmid: "30256789"
+title: "Sertraline for major depression with co-primary endpoints of response and functional improvement"
+authors: ["Foster D", "Hernandez C", "Lee W"]
+journal: "Journal of Clinical Psychiatry"
+publication_date: "2020-06-15"
+abstract: >
+  BACKGROUND: Functional impairment persists in many patients despite symptom
+  improvement. This trial used co-primary endpoints to capture both domains.
+  METHODS: We conducted a 12-week, double-blind, randomized, placebo-controlled
+  trial of sertraline 50-200 mg/day in 320 adults with MDD. Co-primary endpoints
+  were: (1) HAM-D-17 response rate and (2) Sheehan Disability Scale (SDS) change.
+  The trial required both endpoints to be significant.
+  RESULTS: CO-PRIMARY 1 — HAM-D RESPONSE: 57.5% sertraline (n=160) versus 43.1%
+  placebo (n=160); OR 1.79, 95% CI 1.17-2.74, p=0.007. CO-PRIMARY 2 — SDS
+  CHANGE: Mean reduction of 9.8 (SD 5.2) versus 7.1 (SD 5.7) points; mean
+  difference -2.7, 95% CI -3.9 to -1.5, p<0.001. SECONDARY: Remission (HAM-D
+  <=7) was 33.1% versus 21.9% (OR 1.76, 95% CI 1.10-2.82, p=0.019). Quality
+  of life improved significantly.
+  CONCLUSIONS: Sertraline improves both symptoms and functioning, meeting both
+  co-primary endpoints with clear clinical significance.
+ground_truth:
+  sample_size_treatment: 160
+  sample_size_control: 160
+  effect_size: 1.79
+  effect_measure: "odds_ratio"
+  ci_lower: 1.17
+  ci_upper: 2.74
+  p_value: 0.007
+  study_design: "rct"
+  primary_outcome: "HAM-D-17 response rate"

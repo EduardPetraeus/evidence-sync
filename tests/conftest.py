@@ -10,6 +10,7 @@ from evidence_sync.models import (
     BiasRisk,
     EffectMeasure,
     ReviewConfig,
+    ReviewStatus,
     RiskOfBias,
     Study,
     StudyDesign,
@@ -51,6 +52,9 @@ def make_study(
         ci_upper=ci_upper,
         effect_measure=EffectMeasure.ODDS_RATIO if effect_size else None,
         study_design=StudyDesign.RCT,
+        # Default to APPROVED when effect data is provided so existing tests
+        # pass without changes (meta-analysis requires approval by default).
+        review_status=ReviewStatus.APPROVED if effect_size is not None else ReviewStatus.PENDING,
     )
     defaults.update(kwargs)
     return Study(**defaults)

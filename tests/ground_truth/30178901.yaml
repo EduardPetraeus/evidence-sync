@@ -1,0 +1,27 @@
+pmid: "30178901"
+title: "Paroxetine versus placebo in mild depression: findings from a general practice network"
+authors: ["Hughes M", "De Vries R"]
+journal: "Family Practice"
+publication_date: "2017-09-15"
+abstract: >
+  BACKGROUND: Whether SSRIs benefit patients with mild depression remains
+  controversial. This pragmatic trial addressed this gap.
+  METHODS: General practitioners recruited 140 patients with mild MDD
+  (PHQ-9 scores 10-14). Patients were randomized to paroxetine 20 mg/day
+  (n=70) or placebo (n=70) for 8 weeks.
+  RESULTS: Response rates (>=50% PHQ-9 reduction) were 41.4% for paroxetine
+  and 35.7% for placebo (p=0.48). The confidence interval for the odds ratio
+  was wide. No significant group differences were found on any secondary
+  outcome measures. Dropout rates were 11.4% versus 7.1%.
+  CONCLUSIONS: Paroxetine did not show significant benefit over placebo in
+  mild depression, supporting watchful waiting as initial management.
+ground_truth:
+  sample_size_treatment: 70
+  sample_size_control: 70
+  effect_size: null
+  effect_measure: "odds_ratio"
+  ci_lower: null
+  ci_upper: null
+  p_value: 0.48
+  study_design: "rct"
+  primary_outcome: "Response rate (50% PHQ-9 reduction)"

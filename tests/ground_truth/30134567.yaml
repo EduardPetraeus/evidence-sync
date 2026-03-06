@@ -1,0 +1,31 @@
+pmid: "30134567"
+title: "Sertraline versus placebo for depressive episodes in bipolar II disorder: a pilot RCT"
+authors: ["O'Brien C", "Tanaka K"]
+journal: "Bipolar Disorders"
+publication_date: "2018-12-01"
+abstract: >
+  The role of antidepressants in bipolar depression remains controversial.
+  To investigate the efficacy of sertraline as adjunctive therapy in bipolar
+  II depression, we performed a pilot randomized, double-blind,
+  placebo-controlled trial at a single tertiary care center. Eighty patients
+  experiencing a depressive episode in bipolar II disorder, already stabilized
+  on a mood stabilizer, were recruited. Forty participants received sertraline
+  at doses between 50 and 150 mg per day, while forty received placebo, for
+  a duration of twelve weeks. At the primary endpoint, the mean change in the
+  Montgomery-Asberg Depression Rating Scale from baseline was minus fourteen
+  point two points in the sertraline arm (standard deviation seven point one)
+  compared with minus nine point eight (standard deviation eight point three)
+  in the placebo arm. This yielded a mean difference of negative four point
+  four, with a ninety-five percent confidence interval from negative seven
+  point eight to negative one point zero, and a corresponding p-value of
+  zero point zero one two. No patient experienced a manic switch.
+ground_truth:
+  sample_size_treatment: 40
+  sample_size_control: 40
+  effect_size: -4.4
+  effect_measure: "mean_difference"
+  ci_lower: -7.8
+  ci_upper: -1.0
+  p_value: 0.012
+  study_design: "rct"
+  primary_outcome: "Change in MADRS total score from baseline"

@@ -1,0 +1,31 @@
+pmid: "30212345"
+title: "Sertraline versus placebo for mild depressive symptoms in primary care: a qualitative embedded study"
+authors: ["Evans T", "Magnusson B"]
+journal: "BMC Psychiatry"
+publication_date: "2019-02-14"
+abstract: >
+  BACKGROUND: Patient experiences with antidepressant treatment in primary
+  care are underexplored. This study explored qualitative outcomes from a
+  parent RCT of sertraline versus placebo.
+  METHODS: This was a qualitative embedded study within a randomized trial
+  of 200 patients. Semi-structured interviews were conducted with 30
+  participants (15 sertraline, 15 placebo) at week 8. Thematic analysis
+  was used to identify patterns in patient experiences.
+  RESULTS: Five main themes emerged: initial skepticism about medication,
+  gradual awareness of change, attribution uncertainty, side effect burden,
+  and relationship to self-identity. Patients in the sertraline group more
+  frequently reported a sense of emotional stabilization, though many
+  attributed improvement to contextual factors rather than medication.
+  No quantitative efficacy data are reported in this paper.
+  CONCLUSIONS: Patient narratives reveal complex attribution processes
+  during antidepressant treatment that should inform clinical communication.
+ground_truth:
+  sample_size_treatment: null
+  sample_size_control: null
+  effect_size: null
+  effect_measure: null
+  ci_lower: null
+  ci_upper: null
+  p_value: null
+  study_design: "rct"
+  primary_outcome: null

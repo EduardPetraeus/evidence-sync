@@ -1,0 +1,29 @@
+pmid: "30034567"
+title: "Paroxetine versus placebo in first-episode major depression: a randomized trial"
+authors: ["Johansson L", "Fischer M"]
+journal: "British Journal of Psychiatry"
+publication_date: "2017-11-20"
+abstract: >
+  BACKGROUND: Few trials have focused specifically on first-episode MDD patients.
+  We investigated the efficacy of paroxetine 20 mg/day in this population.
+  METHODS: This was a 12-week, double-blind, randomized, placebo-controlled trial.
+  We enrolled 196 adults aged 18-50 with a first episode of MDD. Patients were
+  randomized to paroxetine 20 mg/day (n=98) or placebo (n=98). The primary outcome
+  was the odds of achieving treatment response (>=50% HAM-D reduction).
+  RESULTS: The response rate at 12 weeks was 65.3% for paroxetine and 48.0% for
+  placebo. The odds ratio was 2.04 (95% CI 1.15-3.62, p=0.015). Mean HAM-D score
+  reduction was 12.4 (SD 5.8) for paroxetine versus 9.1 (SD 6.2) for placebo.
+  Discontinuation due to adverse events occurred in 8.2% of paroxetine patients
+  versus 3.1% of placebo patients.
+  CONCLUSIONS: Paroxetine is effective for first-episode MDD with meaningful
+  clinical benefit over placebo.
+ground_truth:
+  sample_size_treatment: 98
+  sample_size_control: 98
+  effect_size: 2.04
+  effect_measure: "odds_ratio"
+  ci_lower: 1.15
+  ci_upper: 3.62
+  p_value: 0.015
+  study_design: "rct"
+  primary_outcome: "Response rate (50% HAM-D reduction)"

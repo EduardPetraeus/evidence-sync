@@ -1,0 +1,30 @@
+pmid: "30156789"
+title: "Escitalopram versus placebo for peripartum depression: the MATERNAL randomized trial"
+authors: ["Jensen K", "Morales A", "Taylor H"]
+journal: "Obstetrics and Gynecology"
+publication_date: "2020-11-01"
+abstract: >
+  Peripartum depression affects roughly one in seven women and has substantial
+  consequences for mother and child. In the MATERNAL trial, we randomized women
+  with major depression who were between six weeks and six months postpartum.
+  The study was conducted as a double-blind, placebo-controlled trial across
+  eight obstetric centers. A total of two hundred ten women were enrolled, with
+  one hundred and five in each group. Escitalopram was dosed at ten to twenty
+  milligrams per day for eight weeks. The intention-to-treat analysis showed
+  that Edinburgh Postnatal Depression Scale scores decreased by a mean of eight
+  point nine points from baseline in the escitalopram group, compared with five
+  point seven points in the placebo group. The between-group mean difference
+  was three point two (ninety-five percent CI negative four point eight to
+  negative one point six) in favor of escitalopram with p less than zero point
+  zero zero one. Response defined as fifty percent EPDS reduction occurred in
+  sixty-one percent versus forty-two percent. Breastfeeding rates were similar.
+ground_truth:
+  sample_size_treatment: 105
+  sample_size_control: 105
+  effect_size: -3.2
+  effect_measure: "mean_difference"
+  ci_lower: -4.8
+  ci_upper: -1.6
+  p_value: 0.001
+  study_design: "rct"
+  primary_outcome: "Change in Edinburgh Postnatal Depression Scale score"

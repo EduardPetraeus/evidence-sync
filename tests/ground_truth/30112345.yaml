@@ -1,0 +1,31 @@
+pmid: "30112345"
+title: "Paroxetine in treatment-resistant depression: a randomized placebo-controlled augmentation study"
+authors: ["Hoffman R", "Suzuki M", "Davies L"]
+journal: "Psychological Medicine"
+publication_date: "2019-04-12"
+abstract: >
+  Treatment-resistant depression (TRD) remains a significant clinical challenge.
+  This report describes a randomized controlled trial examining paroxetine as
+  augmentation therapy. Two hundred forty patients who had failed at least one
+  adequate antidepressant trial were enrolled at six academic medical centers.
+  Participants were randomly assigned, with one hundred twenty-two receiving
+  paroxetine 20-40 mg/day added to their current regimen and one hundred
+  eighteen receiving matched placebo augmentation. The trial lasted 8 weeks
+  with assessments every 2 weeks. Among those receiving paroxetine augmentation,
+  37.7% met response criteria compared to 24.6% in the placebo augmentation
+  group. Statistical analysis revealed that the odds of responding to paroxetine
+  augmentation were 1.86 times higher than placebo, with a 95 percent confidence
+  interval ranging from 1.08 to 3.21 and a two-sided p-value of 0.026. The
+  mean MADRS score decreased from 28.4 to 17.2 in the paroxetine group versus
+  28.1 to 20.8 in the placebo group. Dropout due to side effects was comparable
+  between groups at approximately 9 percent.
+ground_truth:
+  sample_size_treatment: 122
+  sample_size_control: 118
+  effect_size: 1.86
+  effect_measure: "odds_ratio"
+  ci_lower: 1.08
+  ci_upper: 3.21
+  p_value: 0.026
+  study_design: "rct"
+  primary_outcome: "Response rate in treatment-resistant depression"

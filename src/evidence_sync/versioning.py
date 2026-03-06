@@ -14,6 +14,7 @@ from evidence_sync.models import (
     AnalysisResult,
     BiasRisk,
     EffectMeasure,
+    ReviewStatus,
     RiskOfBias,
     Study,
     StudyDesign,
@@ -157,6 +158,20 @@ def _study_to_dict(study: Study) -> dict:
         "extraction_model": study.extraction_model,
         "extraction_confidence": study.extraction_confidence,
         "full_text_available": study.full_text_available,
+        "review_status": study.review_status.value,
+        "reviewer": study.reviewer,
+        "review_date": study.review_date.isoformat() if study.review_date else None,
+        "review_notes": study.review_notes,
+        "population": study.population,
+        "intervention": study.intervention,
+        "comparator": study.comparator,
+        "outcome": study.outcome,
+        "data_source": study.data_source,
+        "pmc_id": study.pmc_id,
+        "nct_id": study.nct_id,
+        "original_effect_size": study.original_effect_size,
+        "original_ci_lower": study.original_ci_lower,
+        "original_ci_upper": study.original_ci_upper,
     }
 
     if study.risk_of_bias:
@@ -198,6 +213,20 @@ def _dict_to_study(data: dict) -> Study:
     except ValueError:
         study_design = StudyDesign.UNKNOWN
 
+    # Review status
+    rs_str = data.get("review_status", "pending")
+    try:
+        review_status = ReviewStatus(rs_str)
+    except ValueError:
+        review_status = ReviewStatus.PENDING
+
+    # Review date
+    rev_date = data.get("review_date")
+    if isinstance(rev_date, str):
+        rev_date = date.fromisoformat(rev_date)
+    elif not isinstance(rev_date, date):
+        rev_date = None
+
     # Risk of bias
     rob_data = data.get("risk_of_bias")
     risk_of_bias = None
@@ -234,6 +263,20 @@ def _dict_to_study(data: dict) -> Study:
         extraction_model=data.get("extraction_model"),
         extraction_confidence=data.get("extraction_confidence"),
         full_text_available=data.get("full_text_available", False),
+        review_status=review_status,
+        reviewer=data.get("reviewer"),
+        review_date=rev_date,
+        review_notes=data.get("review_notes"),
+        population=data.get("population"),
+        intervention=data.get("intervention"),
+        comparator=data.get("comparator"),
+        outcome=data.get("outcome"),
+        data_source=data.get("data_source", "abstract"),
+        pmc_id=data.get("pmc_id"),
+        nct_id=data.get("nct_id"),
+        original_effect_size=data.get("original_effect_size"),
+        original_ci_lower=data.get("original_ci_lower"),
+        original_ci_upper=data.get("original_ci_upper"),
     )
 
 

@@ -1,0 +1,29 @@
+pmid: "30056789"
+title: "Citalopram versus placebo for depression in primary care: the CIPRA randomized trial"
+authors: ["Nielsen H", "Brown A", "Singh V"]
+journal: "JAMA Internal Medicine"
+publication_date: "2018-09-05"
+abstract: >
+  BACKGROUND: Primary care physicians frequently prescribe citalopram, but
+  evidence from primary care settings is sparse. The CIPRA trial tested
+  citalopram efficacy in a real-world primary care population.
+  METHODS: We randomized 264 adults with MDD recruited from 32 primary care
+  practices to citalopram 20-40 mg/day (n=132) or placebo (n=132) for 12 weeks.
+  The primary outcome was treatment response at 12 weeks (>=50% PHQ-9 reduction).
+  Randomization used stratified block allocation.
+  RESULTS: At 12 weeks, 55.3% of citalopram patients and 39.4% of placebo patients
+  responded. The odds ratio was 1.90 (95% CI 1.18 to 3.07; p=0.009). The mean
+  PHQ-9 score change was -8.7 (SD 4.9) versus -6.4 (SD 5.3). Adverse events
+  were mild in both groups.
+  CONCLUSIONS: Citalopram is effective in primary care MDD, supporting its
+  role as a first-line treatment option.
+ground_truth:
+  sample_size_treatment: 132
+  sample_size_control: 132
+  effect_size: 1.90
+  effect_measure: "odds_ratio"
+  ci_lower: 1.18
+  ci_upper: 3.07
+  p_value: 0.009
+  study_design: "rct"
+  primary_outcome: "Response rate (50% PHQ-9 reduction)"

@@ -1,0 +1,27 @@
+pmid: "30201234"
+title: "Fluoxetine for depression in Parkinson's disease: a 12-week randomized trial"
+authors: ["Lombardi G", "Sato R"]
+journal: "Movement Disorders"
+publication_date: "2018-10-20"
+abstract: >
+  BACKGROUND: Depression is the most common psychiatric comorbidity in
+  Parkinson's disease (PD) and worsens quality of life.
+  METHODS: We conducted a double-blind RCT in 72 PD patients with MDD.
+  Patients received fluoxetine 20 mg/day (n=36) or placebo (n=36) for
+  12 weeks. Primary outcome was HAM-D-17 response rate.
+  RESULTS: Response was achieved by 52.8% of fluoxetine patients and
+  33.3% of placebo patients. The study was designed as a pilot and was
+  not powered for definitive conclusions. Motor symptoms (UPDRS Part III)
+  did not worsen with fluoxetine.
+  CONCLUSIONS: Fluoxetine shows promise for depression in PD without
+  motor worsening. Larger trials are warranted.
+ground_truth:
+  sample_size_treatment: 36
+  sample_size_control: 36
+  effect_size: null
+  effect_measure: null
+  ci_lower: null
+  ci_upper: null
+  p_value: null
+  study_design: "rct"
+  primary_outcome: "HAM-D-17 response rate"

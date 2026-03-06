@@ -1,0 +1,30 @@
+pmid: "30223456"
+title: "Protocol for a randomized trial of escitalopram versus placebo in late-life depression"
+authors: ["Richardson P", "Watanabe Y", "Meyer L"]
+journal: "Trials"
+publication_date: "2020-01-05"
+abstract: >
+  BACKGROUND: Late-life depression (LLD) is prevalent and associated with
+  dementia risk. The LATER trial will test whether escitalopram is effective
+  for LLD and whether treatment improves cognitive trajectories.
+  METHODS/DESIGN: This is a protocol for a multicenter, double-blind,
+  randomized, placebo-controlled trial. We will enroll 300 adults aged 60
+  and older with MDD. Participants will be randomized 1:1 to escitalopram
+  10-20 mg/day or placebo for 52 weeks. Primary outcomes are HAM-D-17
+  response rate at week 12 and change in cognitive composite score at week 52.
+  Secondary outcomes include remission rate, functional status, and
+  neuroimaging biomarkers. The trial is registered at ClinicalTrials.gov
+  (NCT04XXXXXX) and recruitment began in January 2020.
+  DISCUSSION: This trial will provide high-quality evidence on the
+  efficacy of escitalopram in LLD and its potential neuroprotective effects.
+  No results are reported.
+ground_truth:
+  sample_size_treatment: null
+  sample_size_control: null
+  effect_size: null
+  effect_measure: null
+  ci_lower: null
+  ci_upper: null
+  p_value: null
+  study_design: "rct"
+  primary_outcome: null

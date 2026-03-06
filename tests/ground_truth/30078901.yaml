@@ -1,0 +1,28 @@
+pmid: "30078901"
+title: "Vortioxetine versus placebo in major depressive disorder: a phase III randomized trial"
+authors: ["Boulenger J", "Svensson K", "Young A"]
+journal: "European Neuropsychopharmacology"
+publication_date: "2019-01-20"
+abstract: >
+  BACKGROUND: Vortioxetine is a multimodal antidepressant with SSRI properties and
+  additional 5-HT receptor modulation. Its efficacy in MDD needs further confirmation.
+  METHODS: Adults (n=462) with MDD were randomized to vortioxetine 10 mg/day (n=155),
+  vortioxetine 20 mg/day (n=154), or placebo (n=153) in a double-blind 8-week trial.
+  The primary endpoint was change from baseline in MADRS total score at week 8.
+  RESULTS: Vortioxetine 20 mg showed a mean MADRS change of -16.3 (SD 8.2) versus
+  -12.5 (SD 8.9) for placebo, yielding a mean difference of -3.8 (95% CI -5.6 to -2.0,
+  p<0.001). Vortioxetine 10 mg showed a mean difference of -2.1 (95% CI -3.9 to -0.3,
+  p=0.024). Response rates (>=50% MADRS reduction) were 54.5%, 47.1%, and 36.6%
+  for vortioxetine 20 mg, 10 mg, and placebo.
+  CONCLUSIONS: Vortioxetine demonstrates dose-dependent efficacy in MDD with
+  significant improvement over placebo at both doses.
+ground_truth:
+  sample_size_treatment: 154
+  sample_size_control: 153
+  effect_size: -3.8
+  effect_measure: "mean_difference"
+  ci_lower: -5.6
+  ci_upper: -2.0
+  p_value: 0.001
+  study_design: "rct"
+  primary_outcome: "Change in MADRS total score from baseline"

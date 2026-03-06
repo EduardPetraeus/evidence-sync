@@ -1,0 +1,30 @@
+pmid: "30234567"
+title: "Safety and tolerability of paroxetine in major depression: a systematic review of adverse events"
+authors: ["Chang L", "Virtanen S"]
+journal: "Drug Safety"
+publication_date: "2018-07-15"
+abstract: >
+  BACKGROUND: While efficacy of paroxetine for MDD is well established,
+  a comprehensive safety review is needed.
+  METHODS: We conducted a systematic review of all randomized controlled
+  trials of paroxetine versus placebo for MDD published between 2000 and
+  2018. We searched PubMed, Embase, and Cochrane CENTRAL databases.
+  Twenty-three trials were included comprising 5,412 patients.
+  RESULTS: The most commonly reported adverse events were nausea (21.3%
+  vs 9.8%), dry mouth (15.4% vs 8.2%), somnolence (14.7% vs 5.9%),
+  sexual dysfunction (12.1% vs 3.4%), and weight gain (8.9% vs 3.1%).
+  Discontinuation due to adverse events occurred in 10.4% versus 5.8%.
+  Serious adverse events were rare and comparable between groups.
+  CONCLUSIONS: Paroxetine has a predictable adverse event profile consistent
+  with its pharmacological class. Clinicians should proactively discuss
+  common side effects with patients.
+ground_truth:
+  sample_size_treatment: null
+  sample_size_control: null
+  effect_size: null
+  effect_measure: null
+  ci_lower: null
+  ci_upper: null
+  p_value: null
+  study_design: "unknown"
+  primary_outcome: null

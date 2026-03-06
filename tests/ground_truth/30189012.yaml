@@ -1,0 +1,27 @@
+pmid: "30189012"
+title: "Citalopram versus placebo for depression following myocardial infarction: the CARDIAC-D study"
+authors: ["Bergstrom F", "Okafor J"]
+journal: "Psychosomatic Medicine"
+publication_date: "2019-06-01"
+abstract: >
+  BACKGROUND: Post-myocardial infarction (MI) depression is associated with
+  increased cardiovascular mortality. Safe and effective treatment is needed.
+  METHODS: We enrolled 94 patients with MDD within 3 months of MI. Patients
+  were randomized to citalopram 20 mg/day (n=47) or placebo (n=47) for
+  12 weeks. The primary outcome was change in Beck Depression Inventory (BDI)
+  score from baseline.
+  RESULTS: BDI score decreased by 11.2 points (SD 7.3) in the citalopram group
+  versus 7.4 (SD 8.1) in placebo. The mean difference was -3.8 (95% CI
+  -6.9 to -0.7, p=0.017). Cardiac safety was excellent with no significant
+  QTc prolongation.
+  CONCLUSIONS: Citalopram is effective and cardio-safe for post-MI depression.
+ground_truth:
+  sample_size_treatment: 47
+  sample_size_control: 47
+  effect_size: -3.8
+  effect_measure: "mean_difference"
+  ci_lower: -6.9
+  ci_upper: -0.7
+  p_value: 0.017
+  study_design: "rct"
+  primary_outcome: "Change in Beck Depression Inventory score"
