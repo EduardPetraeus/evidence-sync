@@ -10,6 +10,13 @@ from pathlib import Path
 from evidence_sync.models import AnalysisResult, ReviewConfig, Study
 
 
+def _sanitize_csv_cell(value: str) -> str:
+    """Prevent formula injection in spreadsheet applications."""
+    if value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
+
+
 def _write_output(content: str, output_path: Path | None) -> str:
     """Write content to file if path given, return content either way."""
     if output_path is not None:
@@ -71,10 +78,10 @@ def export_csv(
         writer.writerow(
             [
                 s.pmid,
-                authors_str,
+                _sanitize_csv_cell(authors_str),
                 s.publication_date.year,
-                s.title,
-                s.journal,
+                _sanitize_csv_cell(s.title),
+                _sanitize_csv_cell(s.journal),
                 f"{s.effect_size:.6f}" if s.effect_size is not None else "",
                 f"{s.ci_lower:.6f}" if s.ci_lower is not None else "",
                 f"{s.ci_upper:.6f}" if s.ci_upper is not None else "",
@@ -86,10 +93,10 @@ def export_csv(
                 s.study_design.value if s.study_design else "",
                 s.effect_measure.value if s.effect_measure else "",
                 s.review_status.value,
-                s.population or "",
-                s.intervention or "",
-                s.comparator or "",
-                s.outcome or "",
+                _sanitize_csv_cell(s.population or ""),
+                _sanitize_csv_cell(s.intervention or ""),
+                _sanitize_csv_cell(s.comparator or ""),
+                _sanitize_csv_cell(s.outcome or ""),
             ]
         )
 
@@ -220,7 +227,7 @@ def export_r_dataframe(
 
         writer.writerow(
             [
-                study_label,
+                _sanitize_csv_cell(study_label),
                 s.publication_date.year,
                 f"{s.effect_size:.6f}" if s.effect_size is not None else "",
                 f"{vi:.6f}" if vi is not None else "",

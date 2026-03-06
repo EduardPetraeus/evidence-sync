@@ -111,7 +111,7 @@ def generate_prisma_flow(
     if total_identified is None:
         total_identified = len(studies) + len(excluded_screening) + duplicates_removed
 
-    reports_assessed = len(studies) - len(excluded_screening)
+    reports_assessed = max(0, len(studies) - len(excluded_screening))
     reports_not_retrieved = max(0, len(included_or_uncertain) - reports_assessed)
 
     return PRISMAFlowData(
@@ -565,7 +565,7 @@ def generate_prisma_checklist(
     """
     has_studies = len(studies) > 0
     has_data = any(s.has_extractable_data for s in studies)
-    has_pico = any(s.population is not None for s in studies)
+    has_pico = any(bool(s.population) for s in studies)
     has_rob = any(s.risk_of_bias is not None for s in studies)
     has_criteria = bool(config.inclusion_criteria or config.exclusion_criteria)
     has_query = bool(config.search_query)
