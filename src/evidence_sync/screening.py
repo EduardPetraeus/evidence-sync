@@ -159,6 +159,19 @@ def screen_study(
     Returns:
         ScreeningResult with relevance score and decision.
     """
+    if not study.abstract or len(study.abstract.strip()) < 50:
+        logger.warning(
+            f"Study {study.pmid} has no/short abstract — skipping screening"
+        )
+        return ScreeningResult(
+            pmid=study.pmid,
+            relevance_score=0.5,
+            decision="uncertain",
+            reasons=["Abstract too short for meaningful screening"],
+            screening_date=date.today(),
+            screening_model=model,
+        )
+
     prompt = _build_screening_prompt(study, config)
 
     response = anthropic_client.messages.create(

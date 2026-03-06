@@ -34,15 +34,32 @@ def run_meta_analysis(
         AnalysisResult or None if insufficient data.
     """
     # Filter to studies with extractable data
+    with_data = [s for s in studies if s.has_extractable_data and s.se_from_ci]
+
     if require_approval:
-        valid = [
-            s for s in studies
-            if s.has_extractable_data
-            and s.se_from_ci
-            and s.review_status in (ReviewStatus.APPROVED, ReviewStatus.CORRECTED)
-        ]
+        # Auto-detect: if no studies have been explicitly reviewed, skip approval gate
+        any_reviewed = any(
+            s.review_status != ReviewStatus.PENDING for s in with_data
+        )
+        if any_reviewed:
+            valid = [
+                s for s in with_data
+                if s.review_status in (ReviewStatus.APPROVED, ReviewStatus.CORRECTED)
+            ]
+            n_filtered = len(with_data) - len(valid)
+            if n_filtered > 0:
+                logger.info(
+                    f"Review filter: {len(valid)} approved of {len(with_data)} "
+                    f"with data ({n_filtered} pending/rejected)"
+                )
+        else:
+            valid = with_data
+            logger.info(
+                "No studies reviewed yet — including all studies with data"
+            )
     else:
-        valid = [s for s in studies if s.has_extractable_data and s.se_from_ci]
+        valid = with_data
+
     if len(valid) < 2:
         logger.warning(f"Need at least 2 studies with data, got {len(valid)}")
         return None

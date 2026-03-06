@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import logging
+import re
+import time
 from typing import Optional
 
 import defusedxml.ElementTree as DefusedET
 import httpx
 
 from evidence_sync.models import Study
+
+NCT_ID_PATTERN = re.compile(r"^NCT\d{1,15}$")
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +22,7 @@ PMC_IDCONV_URL = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/"
 CTGOV_API_URL = "https://clinicaltrials.gov/api/v2/studies"
 
 RATE_LIMIT_TIMEOUT = 30.0
+RATE_LIMIT_DELAY = 0.34  # Max 3 requests/sec without NCBI API key
 
 
 def fetch_pmc_fulltext(pmid: str) -> Optional[str]:
@@ -34,7 +39,11 @@ def fetch_pmc_fulltext(pmid: str) -> Optional[str]:
     if pmcid is None:
         logger.info(f"No PMC article found for PMID {pmid}")
         return None
+    return _fetch_pmc_by_pmcid(pmcid)
 
+
+def _fetch_pmc_by_pmcid(pmcid: str) -> Optional[str]:
+    """Fetch full text from PMC by PMCID."""
     try:
         response = httpx.get(
             PMC_EFETCH_URL,
@@ -99,7 +108,7 @@ def _parse_pmc_xml(xml_text: str) -> str:
 
     paragraphs: list[str] = []
     for elem in body.iter():
-        if elem.tag == "p" and elem.text:
+        if elem.tag == "p":
             # Collect text and tail text from child elements
             text_parts = [elem.text or ""]
             for child in elem:
@@ -114,6 +123,13 @@ def _parse_pmc_xml(xml_text: str) -> str:
     return "\n\n".join(paragraphs)
 
 
+def _validate_nct_id(nct_id: str) -> str:
+    """Validate NCT ID format to prevent path traversal."""
+    if not NCT_ID_PATTERN.match(nct_id):
+        raise ValueError(f"Invalid NCT ID '{nct_id}' — must match NCT + digits")
+    return nct_id
+
+
 def fetch_ctgov_data(nct_id: str) -> Optional[dict]:
     """Fetch structured study data from ClinicalTrials.gov API v2.
 
@@ -121,6 +137,7 @@ def fetch_ctgov_data(nct_id: str) -> Optional[dict]:
     completion_date, conditions, interventions, results (if available).
     """
     try:
+        _validate_nct_id(nct_id)
         response = httpx.get(
             f"{CTGOV_API_URL}/{nct_id}",
             timeout=RATE_LIMIT_TIMEOUT,
@@ -216,17 +233,18 @@ def enrich_study_with_fulltext(study: Study) -> bool:
     """
     enriched = False
 
-    # Step 1: Try PMC full-text
-    full_text = fetch_pmc_fulltext(study.pmid)
-    if full_text:
-        study.full_text_available = True
-        study.data_source = "full_text"
-        # Store PMCID for reference
-        pmcid = _pmid_to_pmcid(study.pmid)
-        if pmcid:
-            study.pmc_id = pmcid
-        enriched = True
-        logger.info(f"Enriched {study.pmid} with PMC full text")
+    # Step 1: Try PMC full-text (resolve PMCID once, reuse)
+    pmcid = _pmid_to_pmcid(study.pmid)
+    time.sleep(RATE_LIMIT_DELAY)
+    if pmcid:
+        study.pmc_id = pmcid
+        full_text = _fetch_pmc_by_pmcid(pmcid)
+        time.sleep(RATE_LIMIT_DELAY)
+        if full_text:
+            study.full_text_available = True
+            study.data_source = "full_text"
+            enriched = True
+            logger.info(f"Enriched {study.pmid} with PMC full text")
 
     # Step 2: Try ClinicalTrials.gov
     if study.nct_id is None:

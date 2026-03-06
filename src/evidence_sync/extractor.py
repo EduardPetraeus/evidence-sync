@@ -251,9 +251,11 @@ def extract_study_data_gemini(
         if extracted:
             _apply_extraction(study, extracted, f"gemini:{model}")
 
-    except Exception:
+    except Exception as exc:
+        # Do NOT log exc_info — traceback may contain API key from URL params
         logger.error(
-            f"Gemini extraction failed for {study.pmid}", exc_info=True
+            f"Gemini extraction failed for {study.pmid}: "
+            f"{type(exc).__name__}: {exc}"
         )
 
     return study
