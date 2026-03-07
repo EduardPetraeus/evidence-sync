@@ -148,9 +148,7 @@ def search(ctx: click.Context, topic_id: str, max_results: int) -> None:
 
 @cli.command()
 @click.argument("topic_id", callback=_validated_topic_id)
-@click.option(
-    "--model", default="claude-sonnet-4-20250514", help="Model for extraction"
-)
+@click.option("--model", default="claude-sonnet-4-20250514", help="Model for extraction")
 @click.option(
     "--provider",
     type=click.Choice(["claude", "gemini"]),
@@ -158,7 +156,9 @@ def search(ctx: click.Context, topic_id: str, max_results: int) -> None:
     help="AI provider for extraction",
 )
 @click.option(
-    "--auto-commit", is_flag=True, default=False,
+    "--auto-commit",
+    is_flag=True,
+    default=False,
     help="Auto-commit changes to git",
 )
 @click.pass_context
@@ -184,23 +184,17 @@ def extract(
         return
 
     label = f"{provider}:{model}" if provider == "gemini" else model
-    click.echo(
-        f"Extracting data from {len(unextracted)} studies using {label}..."
-    )
+    click.echo(f"Extracting data from {len(unextracted)} studies using {label}...")
 
     if provider == "gemini":
         api_key = os.environ.get("GEMINI_API_KEY", "")
         if not api_key:
             click.echo(
-                "Error: GEMINI_API_KEY environment variable is required "
-                "for Gemini provider."
+                "Error: GEMINI_API_KEY environment variable is required for Gemini provider."
             )
             return
         for i, study in enumerate(unextracted, 1):
-            click.echo(
-                f"  [{i}/{len(unextracted)}] {study.pmid}: "
-                f"{study.title[:60]}..."
-            )
+            click.echo(f"  [{i}/{len(unextracted)}] {study.pmid}: {study.title[:60]}...")
             extract_study_data_gemini(study, api_key, model=model)
             save_study(study, studies_dir)
     else:
@@ -208,16 +202,11 @@ def extract(
 
         client = anthropic.Anthropic()
         for i, study in enumerate(unextracted, 1):
-            click.echo(
-                f"  [{i}/{len(unextracted)}] {study.pmid}: "
-                f"{study.title[:60]}..."
-            )
+            click.echo(f"  [{i}/{len(unextracted)}] {study.pmid}: {study.title[:60]}...")
             extract_study_data(study, client, model=model)
             save_study(study, studies_dir)
 
-    click.echo(
-        f"Extraction complete. {len(unextracted)} studies processed."
-    )
+    click.echo(f"Extraction complete. {len(unextracted)} studies processed.")
 
     if auto_commit:
         if commit_dataset_changes(base_dir, topic_id):
@@ -243,9 +232,7 @@ def enrich(ctx: click.Context, topic_id: str) -> None:
 
     enriched_count = 0
     for i, study in enumerate(studies, 1):
-        click.echo(
-            f"  [{i}/{len(studies)}] {study.pmid}: {study.title[:60]}..."
-        )
+        click.echo(f"  [{i}/{len(studies)}] {study.pmid}: {study.title[:60]}...")
         if enrich_study_with_fulltext(study):
             save_study(study, studies_dir)
             enriched_count += 1
@@ -258,17 +245,12 @@ def enrich(ctx: click.Context, topic_id: str) -> None:
             detail = f" ({', '.join(extras)})" if extras else ""
             click.echo(f"    -> enriched [{source}]{detail}")
 
-    click.echo(
-        f"Enrichment complete. {enriched_count}/{len(studies)} "
-        f"studies enriched."
-    )
+    click.echo(f"Enrichment complete. {enriched_count}/{len(studies)} studies enriched.")
 
 
 @cli.command()
 @click.argument("topic_id", callback=_validated_topic_id)
-@click.option(
-    "--auto-commit", is_flag=True, default=False, help="Auto-commit changes to git"
-)
+@click.option("--auto-commit", is_flag=True, default=False, help="Auto-commit changes to git")
 @click.pass_context
 def analyze(ctx: click.Context, topic_id: str, auto_commit: bool) -> None:
     """Run meta-analysis on extracted studies."""
@@ -343,7 +325,9 @@ def report(ctx: click.Context, topic_id: str, output_dir: Path | None) -> None:
     out = output_dir or (analysis_dir / "plots")
 
     forest_path = generate_forest_plot(
-        studies, result, out / "forest_plot.png",
+        studies,
+        result,
+        out / "forest_plot.png",
         title=f"Forest Plot: {config.topic_name}",
     )
     click.echo(f"Forest plot: {forest_path}")
@@ -517,8 +501,7 @@ def validate(ctx: click.Context, topic_id: str, ground_truth_dir: Path | None) -
         else:
             tag = "FAIL"
         click.echo(
-            f"  [{tag}] {pmid}: {acc:.0%} "
-            f"({comparison['n_correct']}/{comparison['n_total']})"
+            f"  [{tag}] {pmid}: {acc:.0%} ({comparison['n_correct']}/{comparison['n_total']})"
         )
 
     report = compute_accuracy_report(results)
@@ -556,7 +539,9 @@ def dashboard(ctx: click.Context, port: int) -> None:
 )
 @click.pass_context
 def screen(
-    ctx: click.Context, topic_id: str, model: str,
+    ctx: click.Context,
+    topic_id: str,
+    model: str,
 ) -> None:
     """Screen studies for relevance using AI."""
     import anthropic
@@ -583,10 +568,7 @@ def screen(
 
     results = []
     for i, study in enumerate(unscreened, 1):
-        click.echo(
-            f"  [{i}/{len(unscreened)}] "
-            f"{study.pmid}: {study.title[:60]}..."
-        )
+        click.echo(f"  [{i}/{len(unscreened)}] {study.pmid}: {study.title[:60]}...")
         result = screen_study(study, config, client, model)
         results.append(result)
         save_study(study, studies_dir)
@@ -638,7 +620,11 @@ def review_pending(ctx: click.Context, topic_id: str) -> None:
 @click.option("--notes", default=None, help="Review notes")
 @click.pass_context
 def review_approve(
-    ctx: click.Context, topic_id: str, pmid: str, reviewer: str, notes: str | None,
+    ctx: click.Context,
+    topic_id: str,
+    pmid: str,
+    reviewer: str,
+    notes: str | None,
 ) -> None:
     """Approve a study's extracted data."""
     from evidence_sync.review import approve_study
@@ -664,7 +650,11 @@ def review_approve(
 @click.option("--notes", default=None, help="Review notes")
 @click.pass_context
 def review_reject(
-    ctx: click.Context, topic_id: str, pmid: str, reviewer: str, notes: str | None,
+    ctx: click.Context,
+    topic_id: str,
+    pmid: str,
+    reviewer: str,
+    notes: str | None,
 ) -> None:
     """Reject a study's extracted data."""
     from evidence_sync.review import reject_study
@@ -725,6 +715,132 @@ def review_summary(ctx: click.Context, topic_id: str) -> None:
     click.echo(f"  Approved:  {summary['approved']}")
     click.echo(f"  Rejected:  {summary['rejected']}")
     click.echo(f"  Corrected: {summary['corrected']}")
+
+
+@cli.command(name="prisma-flow")
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.pass_context
+def prisma_flow(ctx: click.Context, topic_id: str) -> None:
+    """Generate PRISMA 2020 flow diagram."""
+    from evidence_sync.prisma import format_prisma_flow_text, generate_prisma_flow
+
+    base_dir = ctx.obj["base_dir"]
+    config_path = base_dir / "datasets" / topic_id / "config.yaml"
+    config = load_review_config(config_path)
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    studies = load_all_studies(studies_dir)
+
+    flow = generate_prisma_flow(studies, [], config)
+    click.echo(format_prisma_flow_text(flow))
+
+
+@cli.command(name="prisma-checklist")
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.pass_context
+def prisma_checklist(ctx: click.Context, topic_id: str) -> None:
+    """Show PRISMA 2020 27-item compliance checklist."""
+    from evidence_sync.prisma import (
+        format_checklist_text,
+        generate_prisma_checklist,
+        generate_prisma_flow,
+    )
+
+    base_dir = ctx.obj["base_dir"]
+    config_path = base_dir / "datasets" / topic_id / "config.yaml"
+    config = load_review_config(config_path)
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    analysis_dir = get_analysis_dir(base_dir, topic_id)
+    studies = load_all_studies(studies_dir)
+    result = load_analysis(analysis_dir)
+    flow = generate_prisma_flow(studies, [], config)
+
+    items = generate_prisma_checklist(
+        studies,
+        config,
+        result=result,
+        flow=flow,
+    )
+    click.echo(format_checklist_text(items))
+
+
+@cli.command(name="prisma-export")
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.option(
+    "--format",
+    "fmt",
+    type=click.Choice(["csv", "xml", "r"]),
+    default="csv",
+    help="Export format",
+)
+@click.option(
+    "--output",
+    "output_path",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Output file path",
+)
+@click.pass_context
+def prisma_export(
+    ctx: click.Context,
+    topic_id: str,
+    fmt: str,
+    output_path: Path | None,
+) -> None:
+    """Export study data in various formats."""
+    from evidence_sync.export import (
+        export_csv,
+        export_r_dataframe,
+        export_revman_xml,
+    )
+
+    base_dir = ctx.obj["base_dir"]
+    config_path = base_dir / "datasets" / topic_id / "config.yaml"
+    config = load_review_config(config_path)
+    studies_dir = get_studies_dir(base_dir, topic_id)
+    analysis_dir = get_analysis_dir(base_dir, topic_id)
+    studies = load_all_studies(studies_dir)
+    result = load_analysis(analysis_dir)
+
+    if fmt == "csv":
+        data = export_csv(studies, result=result, output_path=output_path)
+    elif fmt == "xml":
+        data = export_revman_xml(
+            studies,
+            config,
+            result=result,
+            output_path=output_path,
+        )
+    elif fmt == "r":
+        data = export_r_dataframe(
+            studies,
+            result=result,
+            output_path=output_path,
+        )
+    else:
+        click.echo(f"Unknown format: {fmt}")
+        return
+
+    if output_path:
+        click.echo(f"Exported to {output_path}")
+    else:
+        click.echo(data)
+
+
+@cli.command()
+@click.argument("topic_id", callback=_validated_topic_id)
+@click.pass_context
+def protocol(ctx: click.Context, topic_id: str) -> None:
+    """Generate PROSPERO-compatible protocol template."""
+    from evidence_sync.protocol import format_protocol_text, generate_protocol
+
+    base_dir = ctx.obj["base_dir"]
+    config_path = base_dir / "datasets" / topic_id / "config.yaml"
+    config = load_review_config(config_path)
+    analysis_dir = get_analysis_dir(base_dir, topic_id)
+    result = load_analysis(analysis_dir)
+
+    proto = generate_protocol(config, result=result)
+    click.echo(format_protocol_text(proto))
 
 
 if __name__ == "__main__":
