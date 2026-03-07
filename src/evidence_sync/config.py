@@ -10,7 +10,7 @@ import yaml
 
 from evidence_sync.models import EffectMeasure, ReviewConfig
 
-TOPIC_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9\-]{0,63}$")
+TOPIC_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9\-]{0,63}\Z")
 
 
 def validate_topic_id(topic_id: str) -> str:

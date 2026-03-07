@@ -93,6 +93,10 @@ class TestInputValidation:
         with pytest.raises(ValueError):
             validate_topic_id("foo bar")
 
+    def test_topic_id_rejects_trailing_newline(self):
+        with pytest.raises(ValueError):
+            validate_topic_id("valid-name\n")
+
     def test_topic_id_accepts_valid(self):
         assert validate_topic_id("ssri-depression") == "ssri-depression"
         assert validate_topic_id("topic123") == "topic123"
