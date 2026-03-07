@@ -499,6 +499,34 @@ def discover_topics(base_dir: Path) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
+# Base directory validation
+# ---------------------------------------------------------------------------
+
+_FORBIDDEN_ROOTS = frozenset(
+    p.resolve() for p in [Path("/etc"), Path("/usr"), Path("/System"), Path("/var")]
+)
+
+
+def validate_base_dir(path: Path) -> Path:
+    """Validate that a base directory is not under a system-critical root.
+
+    Args:
+        path: Resolved path to validate.
+
+    Returns:
+        The same path if validation passes.
+
+    Raises:
+        ValueError: If path is under a forbidden system root.
+    """
+    resolved = path.resolve()
+    for forbidden in _FORBIDDEN_ROOTS:
+        if resolved == forbidden or resolved.is_relative_to(forbidden):
+            raise ValueError(f"Base directory {resolved} is not a valid project directory.")
+    return resolved
+
+
+# ---------------------------------------------------------------------------
 # Streamlit app
 # ---------------------------------------------------------------------------
 
@@ -521,6 +549,12 @@ def main() -> None:
 
     if not base_dir.is_dir():
         st.error(f"Base directory does not exist: {base_dir}")
+        st.stop()
+
+    try:
+        base_dir = validate_base_dir(base_dir)
+    except ValueError as exc:
+        st.error(str(exc))
         st.stop()
 
     # Sidebar: topic selector

@@ -8,6 +8,7 @@ from datetime import date
 from typing import Optional
 
 from evidence_sync.models import ReviewConfig, ScreeningResult, Study
+from evidence_sync.sanitize import sanitize_prompt_input
 
 logger = logging.getLogger(__name__)
 
@@ -66,17 +67,13 @@ def _build_screening_prompt(
     Returns:
         Formatted prompt string.
     """
-    inclusion = "\n".join(
-        f"- {c}" for c in config.inclusion_criteria
-    ) or "- Not specified"
-    exclusion = "\n".join(
-        f"- {c}" for c in config.exclusion_criteria
-    ) or "- Not specified"
+    inclusion = "\n".join(f"- {c}" for c in config.inclusion_criteria) or "- Not specified"
+    exclusion = "\n".join(f"- {c}" for c in config.exclusion_criteria) or "- Not specified"
 
     return SCREENING_PROMPT.format(
-        title=study.title,
-        abstract=study.abstract,
-        journal=study.journal,
+        title=sanitize_prompt_input(study.title, max_length=500),
+        abstract=sanitize_prompt_input(study.abstract, max_length=5000),
+        journal=sanitize_prompt_input(study.journal, max_length=200),
         inclusion_criteria=inclusion,
         exclusion_criteria=exclusion,
         primary_outcome=config.primary_outcome,
@@ -97,18 +94,13 @@ def _parse_screening_response(response_text: str) -> Optional[dict]:
     # Handle markdown code blocks
     if text.startswith("```"):
         lines = text.split("\n")
-        lines = [
-            line for line in lines
-            if not line.strip().startswith("```")
-        ]
+        lines = [line for line in lines if not line.strip().startswith("```")]
         text = "\n".join(lines)
 
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        logger.error(
-            f"Failed to parse screening response: {text[:200]}"
-        )
+        logger.error(f"Failed to parse screening response: {text[:200]}")
         return None
 
 
@@ -120,7 +112,8 @@ def _clamp_score(score: float) -> float:
 
 
 def _validate_decision(
-    decision: str, relevance_score: float,
+    decision: str,
+    relevance_score: float,
 ) -> str:
     """Validate and normalize the screening decision.
 
@@ -160,9 +153,7 @@ def screen_study(
         ScreeningResult with relevance score and decision.
     """
     if not study.abstract or len(study.abstract.strip()) < 50:
-        logger.warning(
-            f"Study {study.pmid} has no/short abstract — skipping screening"
-        )
+        logger.warning(f"Study {study.pmid} has no/short abstract — skipping screening")
         return ScreeningResult(
             pmid=study.pmid,
             relevance_score=0.5,
@@ -187,9 +178,7 @@ def screen_study(
         return _apply_screening(study, parsed, model)
 
     # Fallback: could not parse response
-    logger.warning(
-        f"Screening failed for {study.pmid}, defaulting to uncertain"
-    )
+    logger.warning(f"Screening failed for {study.pmid}, defaulting to uncertain")
     return ScreeningResult(
         pmid=study.pmid,
         relevance_score=0.5,
@@ -217,7 +206,8 @@ def _apply_screening(
     """
     score = _clamp_score(data.get("relevance_score", 0.5))
     decision = _validate_decision(
-        data.get("decision", "uncertain"), score,
+        data.get("decision", "uncertain"),
+        score,
     )
     reasons = data.get("reasons", [])
     if not isinstance(reasons, list):
@@ -276,19 +266,10 @@ def get_screening_summary(results: list[ScreeningResult]) -> dict:
     """
     return {
         "total": len(results),
-        "include": sum(
-            1 for r in results if r.decision == "include"
-        ),
-        "exclude": sum(
-            1 for r in results if r.decision == "exclude"
-        ),
-        "uncertain": sum(
-            1 for r in results if r.decision == "uncertain"
-        ),
-        "avg_relevance": (
-            sum(r.relevance_score for r in results)
-            / max(len(results), 1)
-        ),
+        "include": sum(1 for r in results if r.decision == "include"),
+        "exclude": sum(1 for r in results if r.decision == "exclude"),
+        "uncertain": sum(1 for r in results if r.decision == "uncertain"),
+        "avg_relevance": (sum(r.relevance_score for r in results) / max(len(results), 1)),
     }
 
 
@@ -304,5 +285,7 @@ def rank_by_relevance(
         New list sorted by relevance_score descending.
     """
     return sorted(
-        results, key=lambda r: r.relevance_score, reverse=True,
+        results,
+        key=lambda r: r.relevance_score,
+        reverse=True,
     )

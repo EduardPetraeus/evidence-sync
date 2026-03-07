@@ -17,6 +17,7 @@ from evidence_sync.models import (
     Study,
     StudyDesign,
 )
+from evidence_sync.sanitize import sanitize_prompt_input, validate_extraction_output
 
 logger = logging.getLogger(__name__)
 
@@ -80,10 +81,10 @@ def extract_study_data(
         Updated study with extracted fields populated.
     """
     prompt = EXTRACTION_PROMPT.format(
-        title=study.title,
-        authors=", ".join(study.authors[:5]),
-        journal=study.journal,
-        abstract=study.abstract,
+        title=sanitize_prompt_input(study.title, max_length=500),
+        authors=sanitize_prompt_input(", ".join(study.authors[:5]), max_length=500),
+        journal=sanitize_prompt_input(study.journal, max_length=200),
+        abstract=sanitize_prompt_input(study.abstract, max_length=5000),
     )
 
     response = anthropic_client.messages.create(
@@ -96,6 +97,7 @@ def extract_study_data(
     extracted = _parse_extraction_response(response_text)
 
     if extracted:
+        extracted = validate_extraction_output(extracted)
         _apply_extraction(study, extracted, model)
 
     return study
@@ -219,10 +221,10 @@ def extract_study_data_gemini(
         Updated study with extracted fields populated.
     """
     prompt = EXTRACTION_PROMPT.format(
-        title=study.title,
-        authors=", ".join(study.authors[:5]),
-        journal=study.journal,
-        abstract=study.abstract,
+        title=sanitize_prompt_input(study.title, max_length=500),
+        authors=sanitize_prompt_input(", ".join(study.authors[:5]), max_length=500),
+        journal=sanitize_prompt_input(study.journal, max_length=200),
+        abstract=sanitize_prompt_input(study.abstract, max_length=5000),
     )
 
     try:
@@ -246,6 +248,7 @@ def extract_study_data_gemini(
         extracted = _parse_extraction_response(response_text)
 
         if extracted:
+            extracted = validate_extraction_output(extracted)
             _apply_extraction(study, extracted, f"gemini:{model}")
 
     except Exception as exc:
@@ -279,10 +282,10 @@ def extract_study_data_fulltext(
     truncated_text = full_text[:4000]
 
     prompt = EXTRACTION_PROMPT.format(
-        title=study.title,
-        authors=", ".join(study.authors[:5]),
-        journal=study.journal,
-        abstract=truncated_text,
+        title=sanitize_prompt_input(study.title, max_length=500),
+        authors=sanitize_prompt_input(", ".join(study.authors[:5]), max_length=500),
+        journal=sanitize_prompt_input(study.journal, max_length=200),
+        abstract=sanitize_prompt_input(truncated_text, max_length=4000),
     )
 
     response = anthropic_client.messages.create(
@@ -295,6 +298,7 @@ def extract_study_data_fulltext(
     extracted = _parse_extraction_response(response_text)
 
     if extracted:
+        extracted = validate_extraction_output(extracted)
         _apply_extraction(study, extracted, model)
         study.data_source = "full_text"
 
