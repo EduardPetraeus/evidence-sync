@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import csv
 import io
+import logging
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from evidence_sync.models import AnalysisResult, ReviewConfig, Study
+
+logger = logging.getLogger(__name__)
 
 
 def _sanitize_csv_cell(value: str) -> str:
@@ -17,9 +20,23 @@ def _sanitize_csv_cell(value: str) -> str:
     return value
 
 
-def _write_output(content: str, output_path: Path | None) -> str:
-    """Write content to file if path given, return content either way."""
+def _write_output(content: str, output_path: Path | None, base_dir: Path | None = None) -> str:
+    """Write content to file if path given, return content either way.
+
+    Args:
+        content: The content to write.
+        output_path: Optional file path to write to.
+        base_dir: If provided, output_path must resolve within this directory.
+
+    Raises:
+        ValueError: If output_path escapes base_dir (path traversal attempt).
+    """
     if output_path is not None:
+        if base_dir is not None:
+            resolved = output_path.resolve()
+            base_resolved = base_dir.resolve()
+            if not resolved.is_relative_to(base_resolved):
+                raise ValueError(f"Output path {output_path} escapes base directory {base_dir}")
         output_path.parent.mkdir(parents=True, exist_ok=True)
         # Write with newline="" to preserve csv \r\n line endings
         with open(output_path, "w", encoding="utf-8", newline="") as f:
@@ -139,8 +156,11 @@ def export_revman_xml(
     # Studies
     studies_elem = ET.SubElement(root, "included_studies")
     for s in valid:
+        if not s.pmid or not s.pmid.strip().isdigit():
+            logger.warning("Skipping study with non-numeric PMID: %r", s.pmid)
+            continue
         study_elem = ET.SubElement(studies_elem, "study")
-        study_elem.set("id", s.pmid)
+        study_elem.set("id", s.pmid.strip())
 
         first_author = s.authors[0] if s.authors else "Unknown"
         ET.SubElement(study_elem, "name").text = f"{first_author} {s.publication_date.year}"

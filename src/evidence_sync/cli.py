@@ -110,7 +110,12 @@ def init(
 
 @cli.command()
 @click.argument("topic_id", callback=_validated_topic_id)
-@click.option("--max-results", default=100, help="Maximum search results")
+@click.option(
+    "--max-results",
+    default=100,
+    type=click.IntRange(1, 10000),
+    help="Maximum search results (1-10000)",
+)
 @click.pass_context
 def search(ctx: click.Context, topic_id: str, max_results: int) -> None:
     """Search PubMed for new studies."""
@@ -338,7 +343,7 @@ def report(ctx: click.Context, topic_id: str, output_dir: Path | None) -> None:
 
 @cli.command()
 @click.argument("topic_id", callback=_validated_topic_id)
-@click.option("--max-results", default=100)
+@click.option("--max-results", default=100, type=click.IntRange(1, 10000))
 @click.option("--model", default="claude-sonnet-4-20250514")
 @click.pass_context
 def run(ctx: click.Context, topic_id: str, max_results: int, model: str) -> None:
@@ -517,7 +522,7 @@ def dashboard(ctx: click.Context, port: int) -> None:
     import subprocess
 
     app_path = Path(__file__).parent / "app.py"
-    subprocess.run(
+    result = subprocess.run(
         [
             "streamlit",
             "run",
@@ -528,6 +533,8 @@ def dashboard(ctx: click.Context, port: int) -> None:
             str(ctx.obj["base_dir"]),
         ]
     )
+    if result.returncode != 0:
+        raise click.ClickException(f"Dashboard exited with code {result.returncode}")
 
 
 @cli.command()
@@ -794,6 +801,15 @@ def prisma_export(
     )
 
     base_dir = ctx.obj["base_dir"]
+
+    # Validate output path stays within base_dir to prevent path traversal
+    if output_path is not None:
+        resolved = output_path.resolve()
+        if not resolved.is_relative_to(base_dir):
+            raise click.BadParameter(
+                f"Output path must be within {base_dir}", param_hint="'--output'"
+            )
+
     config_path = base_dir / "datasets" / topic_id / "config.yaml"
     config = load_review_config(config_path)
     studies_dir = get_studies_dir(base_dir, topic_id)
