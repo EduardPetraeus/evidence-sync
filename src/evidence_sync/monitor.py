@@ -47,8 +47,13 @@ def search_pubmed(
     if api_key:
         params["api_key"] = api_key
 
-    response = httpx.get(PUBMED_ESEARCH_URL, params=params, timeout=30)
-    response.raise_for_status()
+    try:
+        response = httpx.get(PUBMED_ESEARCH_URL, params=params, timeout=30)
+        response.raise_for_status()
+    except httpx.HTTPError as exc:
+        logger.error("PubMed search request failed: %s", exc)
+        raise RuntimeError(f"PubMed search failed: {exc}") from exc
+
     data = response.json()
 
     esearch = data.get("esearchresult", {})
@@ -84,8 +89,12 @@ def fetch_study_details(
         if api_key:
             params["api_key"] = api_key
 
-        response = httpx.get(PUBMED_EFETCH_URL, params=params, timeout=30)
-        response.raise_for_status()
+        try:
+            response = httpx.get(PUBMED_EFETCH_URL, params=params, timeout=30)
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            logger.error("PubMed fetch failed for batch starting at %d: %s", i, exc)
+            continue
 
         batch_studies = _parse_pubmed_xml(response.text)
         studies.extend(batch_studies)
@@ -212,8 +221,18 @@ def _parse_pub_date(article_el: ElementTree.Element) -> date:
 
     month_text = month_el.text if month_el is not None and month_el.text else "1"
     month_map = {
-        "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
-        "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12,
+        "Jan": 1,
+        "Feb": 2,
+        "Mar": 3,
+        "Apr": 4,
+        "May": 5,
+        "Jun": 6,
+        "Jul": 7,
+        "Aug": 8,
+        "Sep": 9,
+        "Oct": 10,
+        "Nov": 11,
+        "Dec": 12,
     }
     if month_text in month_map:
         month = month_map[month_text]
