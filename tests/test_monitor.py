@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import date
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
 
 from evidence_sync.models import EffectMeasure, ReviewConfig
@@ -12,6 +13,7 @@ from evidence_sync.monitor import (
     _build_query,
     _parse_pubmed_xml,
     deduplicate,
+    fetch_study_details,
     search_pubmed,
 )
 
@@ -175,3 +177,29 @@ class TestSearchPubmed:
         assert len(result.pmids) == 3
         assert result.pmids == ["111", "222", "333"]
         mock_get.assert_called_once()
+
+    @patch("evidence_sync.monitor.httpx.get")
+    def test_search_pubmed_http_429_raises(self, mock_get, config):
+        mock_get.side_effect = httpx.HTTPStatusError(
+            "429", request=MagicMock(), response=MagicMock()
+        )
+        with pytest.raises(RuntimeError, match="PubMed search failed"):
+            search_pubmed(config)
+
+
+class TestFetchStudyDetailsErrors:
+    @patch("evidence_sync.monitor.httpx.get")
+    def test_fetch_study_details_http_error(self, mock_get):
+        mock_get.side_effect = httpx.HTTPStatusError(
+            "500", request=MagicMock(), response=MagicMock()
+        )
+        result = fetch_study_details(["111", "222"])
+        assert result == []
+
+    def test_parse_pubmed_xml_malformed(self):
+        with pytest.raises(Exception):
+            _parse_pubmed_xml("<not>valid<xml")
+
+    def test_parse_pubmed_xml_empty_string(self):
+        with pytest.raises(Exception):
+            _parse_pubmed_xml("")

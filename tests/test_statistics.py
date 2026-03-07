@@ -9,9 +9,7 @@ from tests.conftest import make_study
 
 class TestRunMetaAnalysis:
     def test_basic_meta_analysis(self, sample_studies):
-        result = run_meta_analysis(
-            sample_studies, EffectMeasure.ODDS_RATIO, topic="test"
-        )
+        result = run_meta_analysis(sample_studies, EffectMeasure.ODDS_RATIO, topic="test")
         assert result is not None
         assert result.n_studies == 5
         assert result.topic == "test"
@@ -145,9 +143,7 @@ class TestHighHeterogeneity:
         result = run_meta_analysis(studies, EffectMeasure.ODDS_RATIO)
 
         assert result is not None
-        assert result.q_p_value < 0.05, (
-            f"Q p-value {result.q_p_value:.4f} should be < 0.05"
-        )
+        assert result.q_p_value < 0.05, f"Q p-value {result.q_p_value:.4f} should be < 0.05"
 
     def test_tau_squared_increases_with_spread(self):
         """Tau-squared should be larger when effects are more spread out."""
@@ -340,3 +336,30 @@ class TestNumericalStability:
         assert result.n_studies == 50
         assert 1.0 < result.pooled_effect < 2.0
         assert result.pooled_ci_lower < result.pooled_effect < result.pooled_ci_upper
+
+
+class TestPooledSeZero:
+    def test_pooled_se_zero_logs_warning(self, caplog):
+        import logging
+        from unittest.mock import patch
+
+        studies = [
+            make_study(pmid="1", effect_size=1.5, ci_lower=1.0, ci_upper=2.0),
+            make_study(pmid="2", effect_size=1.5, ci_lower=1.0, ci_upper=2.0),
+        ]
+        with (
+            patch("evidence_sync.statistics.math.sqrt", return_value=0.0),
+            caplog.at_level(logging.WARNING),
+        ):
+            result = run_meta_analysis(studies, EffectMeasure.ODDS_RATIO)
+        assert result is not None
+        assert any("Pooled standard error is zero" in r.message for r in caplog.records)
+
+    def test_two_studies_egger_returns_none(self):
+        studies = [
+            make_study(pmid="1", effect_size=1.5, ci_lower=1.0, ci_upper=2.0),
+            make_study(pmid="2", effect_size=2.0, ci_lower=1.2, ci_upper=3.0),
+        ]
+        result = run_meta_analysis(studies, EffectMeasure.ODDS_RATIO)
+        assert result is not None
+        assert result.egger_intercept is None

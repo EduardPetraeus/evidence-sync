@@ -818,19 +818,21 @@ def prisma_export(
     result = load_analysis(analysis_dir)
 
     if fmt == "csv":
-        data = export_csv(studies, result=result, output_path=output_path)
+        data = export_csv(studies, result=result, output_path=output_path, base_dir=base_dir)
     elif fmt == "xml":
         data = export_revman_xml(
             studies,
             config,
             result=result,
             output_path=output_path,
+            base_dir=base_dir,
         )
     elif fmt == "r":
         data = export_r_dataframe(
             studies,
             result=result,
             output_path=output_path,
+            base_dir=base_dir,
         )
     else:
         click.echo(f"Unknown format: {fmt}")

@@ -38,12 +38,11 @@ def run_meta_analysis(
 
     if require_approval:
         # Auto-detect: if no studies have been explicitly reviewed, skip approval gate
-        any_reviewed = any(
-            s.review_status != ReviewStatus.PENDING for s in with_data
-        )
+        any_reviewed = any(s.review_status != ReviewStatus.PENDING for s in with_data)
         if any_reviewed:
             valid = [
-                s for s in with_data
+                s
+                for s in with_data
                 if s.review_status in (ReviewStatus.APPROVED, ReviewStatus.CORRECTED)
             ]
             n_filtered = len(with_data) - len(valid)
@@ -54,9 +53,7 @@ def run_meta_analysis(
                 )
         else:
             valid = with_data
-            logger.info(
-                "No studies reviewed yet — including all studies with data"
-            )
+            logger.info("No studies reviewed yet — including all studies with data")
     else:
         valid = with_data
 
@@ -96,7 +93,14 @@ def run_meta_analysis(
     pooled_ci_upper = pooled_effect + z * pooled_se
 
     # P-value (two-tailed)
-    z_score = pooled_effect / pooled_se if pooled_se > 0 else 0.0
+    if pooled_se > 0:
+        z_score = pooled_effect / pooled_se
+    else:
+        logger.warning(
+            "Pooled standard error is zero — p-value will be 1.0. "
+            "This may indicate identical studies or a numerical edge case."
+        )
+        z_score = 0.0
     pooled_p_value = float(2.0 * (1.0 - stats.norm.cdf(abs(z_score))))
 
     # I-squared
