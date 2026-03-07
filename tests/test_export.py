@@ -256,3 +256,29 @@ class TestRDataframeExport:
         assert output.exists()
         written = output.read_text().replace("\r\n", "\n")
         assert written == csv_str.replace("\r\n", "\n")
+
+
+# ---------------------------------------------------------------------------
+# Security: PMID Validation + Path Traversal
+# ---------------------------------------------------------------------------
+
+
+class TestExportSecurity:
+    def test_revman_xml_skips_invalid_pmid(self):
+        studies = [_make_study("12345"), _make_study("abc-invalid")]
+        xml_str = export_revman_xml(studies, _make_config())
+        root = ET.fromstring(xml_str)
+        study_elems = root.find("included_studies").findall("study")
+
+        assert len(study_elems) == 1
+        assert study_elems[0].get("id") == "12345"
+
+    def test_write_output_path_traversal(self, tmp_path: Path):
+        from evidence_sync.export import _write_output
+
+        base = tmp_path / "safe"
+        base.mkdir()
+        evil = base / ".." / "evil.txt"
+
+        with pytest.raises(ValueError, match="escapes"):
+            _write_output("data", evil, base_dir=base)
