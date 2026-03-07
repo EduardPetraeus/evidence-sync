@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+import logging
 import sys
 from pathlib import Path
 
 import plotly.graph_objects as go
 import streamlit as st
 
-from evidence_sync.config import load_review_config
+from evidence_sync.config import load_review_config, validate_topic_id
 from evidence_sync.models import AnalysisResult, BiasRisk, RiskOfBias, Study
 from evidence_sync.statistics import compute_study_weights
 from evidence_sync.versioning import load_all_studies, load_analysis
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Plotly figure builders (exported for testing)
@@ -486,6 +489,11 @@ def discover_topics(base_dir: Path) -> list[str]:
     topics = []
     for child in sorted(datasets_dir.iterdir()):
         if child.is_dir() and (child / "config.yaml").exists():
+            try:
+                validate_topic_id(child.name)
+            except ValueError:
+                logger.warning("Skipping invalid topic ID: %s", child.name)
+                continue
             topics.append(child.name)
     return topics
 
