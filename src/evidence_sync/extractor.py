@@ -227,9 +227,8 @@ def extract_study_data_gemini(
 
     try:
         response = httpx.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model}"
-            ":generateContent",
-            params={"key": api_key},
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+            headers={"x-goog-api-key": api_key},
             json={
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {
@@ -243,20 +242,15 @@ def extract_study_data_gemini(
         data = response.json()
 
         # Extract text from Gemini response
-        response_text = (
-            data["candidates"][0]["content"]["parts"][0]["text"]
-        )
+        response_text = data["candidates"][0]["content"]["parts"][0]["text"]
         extracted = _parse_extraction_response(response_text)
 
         if extracted:
             _apply_extraction(study, extracted, f"gemini:{model}")
 
     except Exception as exc:
-        # Do NOT log exc_info — traceback may contain API key from URL params
-        logger.error(
-            f"Gemini extraction failed for {study.pmid}: "
-            f"{type(exc).__name__}: {exc}"
-        )
+        # Do NOT log exc_info — traceback may expose request internals including headers
+        logger.error(f"Gemini extraction failed for {study.pmid}: {type(exc).__name__}: {exc}")
 
     return study
 
