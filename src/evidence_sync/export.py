@@ -48,6 +48,7 @@ def export_csv(
     studies: list[Study],
     result: AnalysisResult | None = None,
     output_path: Path | None = None,
+    base_dir: Path | None = None,
 ) -> str:
     """Export study data as CSV.
 
@@ -118,7 +119,7 @@ def export_csv(
         )
 
     csv_str = output.getvalue()
-    return _write_output(csv_str, output_path)
+    return _write_output(csv_str, output_path, base_dir=base_dir)
 
 
 def export_revman_xml(
@@ -126,6 +127,7 @@ def export_revman_xml(
     config: ReviewConfig,
     result: AnalysisResult | None = None,
     output_path: Path | None = None,
+    base_dir: Path | None = None,
 ) -> str:
     """Export study data in RevMan 5 XML format.
 
@@ -195,13 +197,14 @@ def export_revman_xml(
     # Serialize
     ET.indent(root, space="  ")
     xml_str = ET.tostring(root, encoding="unicode", xml_declaration=True)
-    return _write_output(xml_str, output_path)
+    return _write_output(xml_str, output_path, base_dir=base_dir)
 
 
 def export_r_dataframe(
     studies: list[Study],
     result: AnalysisResult | None = None,
     output_path: Path | None = None,
+    base_dir: Path | None = None,
 ) -> str:
     """Export as R-compatible CSV with metafor column naming conventions.
 
@@ -261,4 +264,4 @@ def export_r_dataframe(
         )
 
     csv_str = output.getvalue()
-    return _write_output(csv_str, output_path)
+    return _write_output(csv_str, output_path, base_dir=base_dir)
