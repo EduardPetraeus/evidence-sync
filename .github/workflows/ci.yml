@@ -26,3 +26,8 @@ jobs:
 
       - name: Run unit tests
         run: pytest tests/ -v -m "not integration"
+
+      - name: Run pip-audit
+        run: |
+          pip install pip-audit
+          pip-audit --desc
